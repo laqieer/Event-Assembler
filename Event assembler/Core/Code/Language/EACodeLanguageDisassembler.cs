@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Nintenlord.Event_Assembler.Core.Code.Language.EACodeLanguageDisassembler
-// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
-// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
-// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
-
-using Nintenlord.Collections;
+﻿using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code.Templates;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.Utility;
@@ -15,7 +9,10 @@ using System.Linq;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language
 {
-  internal sealed class EACodeLanguageDisassembler
+    /// <summary>
+    /// To be generealized.
+    /// </summary>
+  sealed class EACodeLanguageDisassembler
   {
     private readonly int minimumOffset = 1048576;
     private const string offsetChanger = "ORG";
@@ -80,6 +77,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       this.FindPointedCodes(code, (IEnumerable<Code>) sortedDictionary.Values, sortedDictionary, log);
       this.FindLables((IDictionary<int, Code>) sortedDictionary, (IDictionary<int, string>) labels);
       this.MergeRepeatableCodes(sortedDictionary, (Predicate<int>) (x => !labels.ContainsKey(x)));
+      //Can cause labels to get omitted, needs to be fixed.
+      
+      //After merging because I want custom format
       this.AddPointerListCodes(offset, intList.ToArray(), sortedDictionary, log);
       KeyValuePair<int, Code> keyValuePair = sortedDictionary.Last<KeyValuePair<int, Nintenlord.Event_Assembler.Core.Code.Language.Code>>();
       int key = keyValuePair.Key;
