@@ -1,76 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.IO.IOHelpers
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Event_Assembler.Core.Collections;
+using System;
+using System.IO;
 
 namespace Nintenlord.Event_Assembler.Core.IO
 {
-    static class IOHelpers
+  internal static class IOHelpers
+  {
+    public static string FindFile(string currentFile, string newFile)
     {
-        public static string FindFile(string currentFile, string newFile)
-        {
-            newFile = newFile.Trim('\"');
-
-            if (File.Exists(newFile))
-            {
-                return newFile;
-            }
-            else if (!String.IsNullOrEmpty(currentFile))
-            {
-                string path = Path.GetDirectoryName(currentFile);
-                path = Path.Combine(path, newFile);
-                if (File.Exists(path))
-                {
-                    return path;
-                }
-            }
-            return string.Empty;
-        }
-
-        public static void DefineFile(string path, IDefineCollection defCol)
-        {
-            StreamReader sr = new StreamReader(path);
-            while (!sr.EndOfStream)
-            {
-                string line = sr.ReadLine();
-                if (line.Length > 0)
-                {
-                    string[] dividedLine = null;// = line.Split(parameterSplitCharacters, parameterUniterCharacters);
-                    for (int i = 1; i < dividedLine.Length; i++)
-                    {
-                        defCol.Add(dividedLine[i], dividedLine[0]);
-                    }
-                }
-            }
-            sr.Close();
-        }
-
-        public static char? ReadCharacter(this TextReader reader)
-        {
-            int value = reader.Read();
-            if (value == -1)
-            {
-                return null;
-            }
-            else
-            {
-                return Convert.ToChar(value);
-            }
-        }
-
-        public static char? PeekCharacter(this TextReader reader)
-        {
-            int value = reader.Peek();
-            if (value == -1)
-            {
-                return null;
-            }
-            else
-            {
-                return Convert.ToChar(value);
-            }
-        }
+      newFile = newFile.Trim('"');
+      if (File.Exists(newFile))
+        return newFile;
+      if (!string.IsNullOrEmpty(currentFile))
+      {
+        string path = Path.Combine(Path.GetDirectoryName(currentFile), newFile);
+        if (File.Exists(path))
+          return path;
+      }
+      return string.Empty;
     }
+
+    public static void DefineFile(string path, IDefineCollection defCol)
+    {
+      StreamReader streamReader = new StreamReader(path);
+      while (!streamReader.EndOfStream)
+      {
+        if (streamReader.ReadLine().Length > 0)
+        {
+          string[] strArray = (string[]) null;
+          for (int index = 1; index < strArray.Length; ++index)
+            defCol.Add(strArray[index], strArray[0]);
+        }
+      }
+      streamReader.Close();
+    }
+
+    public static char? ReadCharacter(this TextReader reader)
+    {
+      int num = reader.Read();
+      if (num == -1)
+        return new char?();
+      return new char?(Convert.ToChar(num));
+    }
+
+    public static char? PeekCharacter(this TextReader reader)
+    {
+      int num = reader.Peek();
+      if (num == -1)
+        return new char?();
+      return new char?(Convert.ToChar(num));
+    }
+  }
 }

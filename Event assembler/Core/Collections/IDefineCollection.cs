@@ -1,65 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Collections.IDefineCollection
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Utility;
- 
 
 namespace Nintenlord.Event_Assembler.Core.Collections
 {
-    /// <summary>
-    /// Collection for storing definitions and macros.
-    /// </summary>
-    public interface IDefineCollection
-    {
-        /// <summary>
-        /// Adds a new item with name original and parameters and with replacer.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <param name="replacer"></param>
-        /// <param name="parameters"></param>
-        void Add(string name, string replacer, params string[] parameters);
-        /// <summary>
-        /// Adds a new item with name original with 0 parameters and with replacer.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <param name="replacer"></param>
-        void Add(string name, string replacer);
-        /// <summary>
-        /// Checks if this collection contains an item with specified number of parameters.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="numberOfParameters"></param>
-        /// <returns></returns>
-        bool ContainsName(string name, params string[] parameters);
-        /// <summary>
-        /// Checks if this collection contains an item with 0 parameters.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        bool ContainsName(string name);
-        /// <summary>
-        /// Removes the defined original with the parameters.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <param name="parameters"></param>
-        void Remove(string name, params string[] parameters);
-        /// <summary>
-        /// Removes the defined original with 0 parameters.
-        /// </summary>
-        /// <param name="original"></param>
-        void Remove(string name);
-        /// <summary>
-        /// Applies the defines on the original and returns the result.
-        /// </summary>
-        /// <param name="original"></param>
-        /// <returns></returns>
-        bool ApplyDefines(string original, out string newOriginal);
-        /// <summary>
-        /// Applies the defines on the original and returns the result.
-        /// </summary>
-        /// <param name="original">Original line to apply defines to</param>
-        /// <returns>The new line or error</returns>
-        CanCauseError<string> ApplyDefines(string original);
+  public interface IDefineCollection
+  {
+    void Add(string name, string replacer, params string[] parameters);
 
-        bool IsValidName(string name);
-    }
+    void Add(string name, string replacer);
+
+    bool ContainsName(string name, params string[] parameters);
+
+    bool ContainsName(string name);
+
+    void Remove(string name, params string[] parameters);
+
+    void Remove(string name);
+
+    bool ApplyDefines(string original, out string newOriginal);
+
+    CanCauseError<string> ApplyDefines(string original);
+
+    bool IsValidName(string name);
+  }
 }

@@ -1,839 +1,543 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.LanguageProcessor
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code.Language;
-using Nintenlord.Event_Assembler.Core.Code.Language.Old;
 using Nintenlord.Event_Assembler.Core.Code.Templates;
-using Nintenlord.Event_Assembler.Core.Collections;
 using Nintenlord.Utility;
-using Nintenlord.Utility.Strings;
-
+using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Nintenlord.Event_Assembler.Core.Code
 {
-    /// <summary>
-    /// Loads language raws and processes them into languages and codes
-    /// </summary>
-    public class LanguageProcessor
+  public class LanguageProcessor
+  {
+    private readonly bool collectDocComments;
+    private readonly IComparer<ICodeTemplate> templateComparer;
+    private readonly StringComparer stringComparer;
+    private IDictionary<string, ICodeTemplateStorer> languages;
+    private IDictionary<string, List<LanguageProcessor.LanguageElement>> elements;
+    private IDictionary<string, List<LanguageProcessor.DocCode>> docs;
+
+    public IDictionary<string, ICodeTemplateStorer> Languages
     {
-        readonly bool collectDocComments;
-        readonly IComparer<ICodeTemplate> templateComparer;
-        readonly StringComparer stringComparer;
-
-        IDictionary<string, ICodeTemplateStorer> languages;
-        IDictionary<string, List<LanguageElement>> elements;
-        IDictionary<string, List<DocCode>> docs;
-
-        public IDictionary<string, ICodeTemplateStorer> Languages
-        {
-            get { return languages; }
-        }
-
-        public LanguageProcessor()
-            : this(false, Comparer<ICodeTemplate>.Default, StringComparer.OrdinalIgnoreCase)
-        {
-
-        }
-
-        public LanguageProcessor(IComparer<ICodeTemplate> templateComparer)
-            : this(false, templateComparer, StringComparer.OrdinalIgnoreCase)
-        {
-
-        }
-
-        public LanguageProcessor(bool collectDocComments)
-            : this(collectDocComments, Comparer<ICodeTemplate>.Default, StringComparer.OrdinalIgnoreCase)
-        {
-
-        }
-
-        public LanguageProcessor(bool collectDocComments, IComparer<ICodeTemplate> equalityComparer, 
-            StringComparer stringComparer)
-        {
-            this.collectDocComments = collectDocComments;
-            this.templateComparer = equalityComparer;
-            this.stringComparer = stringComparer;
-            this.docs = new SortedDictionary<string, List<DocCode>>(new NaturalComparer());
-            this.languages = new Dictionary<string, ICodeTemplateStorer>();
-        }
-
-
-        public void ProcessCode(string folder, string extension)
-        {
-            if (Directory.Exists(folder))
-            {
-                DirectoryInfo directory = new DirectoryInfo(folder);
-                folder = Path.GetFullPath(folder);
-                FileInfo[] files = directory.GetFiles("*" + extension, SearchOption.AllDirectories);
-                elements = new Dictionary<string, List<LanguageElement>>();
-
-                foreach (FileInfo item in files)
-                {
-                    string file = item.FullName.Substring(folder.Length + 1,
-                        item.FullName.Length - folder.Length - extension.Length - 1);
-
-                    ParseLinesInFile(file, File.ReadLines(item.FullName));
-                }
-            }
-            else
-            {
-                throw new DirectoryNotFoundException("Folder " + folder + " not found.");
-            }
-        }
-
-        public void ProcessCode(string file)
-        {
-            if (File.Exists(file))
-            {
-                ParseLinesInFile(Path.GetFileName(file), File.ReadLines(file));                
-            }
-            else
-            {
-                throw new DirectoryNotFoundException("File " + file + " not found.");
-            }
-        }
-
-        /// <summary>
-        /// AE: file != null && !docs.ContainsKey(file) && lines != null
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="lines"></param>
-        private void ParseLinesInFile(string file, IEnumerable<string> lines)
-        {
-            List<LanguageElement> elements = new List<LanguageElement>();
-            LanguageElement newElement = new LanguageElement();
-
-            foreach (var line in lines)
-            {
-                if (line.ContainsNonWhiteSpace())
-                {
-                    if (line[0] == '#')
-                    {
-                        if (collectDocComments && 
-                            line.Length > 1 && 
-                            line[1] == '#')
-                        {
-                            newElement.AddDoc(line.Substring(2));
-                        }
-                    }
-                    else
-                    {
-                        newElement.SetMainLine(line);
-                        elements.Add(newElement);
-                        newElement = new LanguageElement();
-                    }
-                }
-            }
-
-            if (collectDocComments)
-            {
-                int index = 0;
-                while (index < elements.Count)
-                {
-                    DocCode doc = MakeCode(elements, ref index);
-                    foreach (var language in doc.languages)
-                    {
-                        AddCode(doc, language);
-                    }
-                    //var temp = doc.parameterDocs["ID"];
-                    string key = file.Replace('\\', '.');
-                    List<DocCode> docList = docs.GetOldOrSetNew(key);
-                    docList.Add(doc);
-                }
-                this.elements[file] = elements;
-            }
-            else
-            {
-                int index = 0;
-                while (index < elements.Count)
-                {
-                    DocCode doc = MakeCode(elements, ref index);
-                    foreach (var language in doc.languages)
-                    {
-                        AddCode(doc, language);                        
-                    }
-                }
-            }
-        }
-
-        private void AddCode(DocCode doc, string language)
-        {
-            ICodeTemplateStorer storer;
-            if (!languages.TryGetValue(language, out storer))
-            {
-                languages[language] = new CodeTemplateStorer(templateComparer);
-            }
-            languages[language].AddCode(doc.code, doc.priority);
-        }
-        
-        DocCode MakeCode(IList<LanguageElement> elements, ref int index)
-        {
-            List<LanguageElement> codeElements = new List<LanguageElement>();
-            int startIndex = index;
-            do
-            {
-                codeElements.Add(elements[index]);
-                index++;
-            } while (index < elements.Count && elements[index].IsParameter);
-
-            List<string> languages = new List<string>();
-            Priority priority;
-            ICodeTemplate code = ParseCode(codeElements, languages, out priority);
-            DocCode doc = new DocCode();
-
-            doc.code = code;
-            doc.priority = priority;
-
-            if (languages.Count > 0)
-            {
-                doc.languages = languages.ToArray();
-            }
-            else
-            {
-                doc.languages = this.languages.Keys.ToArray();
-            }
-
-            if (collectDocComments)
-            {
-                doc.mainDoc = new List<string>(codeElements[0].GetDocLines());
-                doc.parameterDocs = new Dictionary<string, List<string>>();
-                for (int i = 1; i < codeElements.Count; i++)
-                {
-                    List<string> values = doc.parameterDocs.GetOldOrSetNew(codeElements[i].ParsedLine.name);
-                    values.AddRange(codeElements[i].GetDocLines());
-                }
-            }
-
-            return doc;
-        }
-
-        ICodeTemplate ParseCode(IList<LanguageElement> lines,
-            ICollection<string> usedLanguages, out Priority priority)
-        {
-            ParsedLine header = lines[0].ParsedLine;
-
-            priority = Priority.none;
-            bool canBeRepeated = false;
-            bool checkForProblems = true;
-            bool endingCode = false;
-            bool canBeDisAssembled = true;
-            bool canBeAssembled = true;
-            int indexMode = 1;
-            bool itemList = false;
-            byte endingByte = 0;
-            int offsetMod = 4;
-
-            #region Flags
-
-            foreach (string item in header.flags)
-            {
-                if (item.StartsWith("language") || item.StartsWith("game"))
-                {
-                    string[] languagesS = item.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int i = 1; i < languagesS.Length; i++)
-                    {
-                        usedLanguages.Add(languagesS[i].Trim());
-                    }
-                }
-                else if (item.StartsWith("priority"))
-                {
-                    int index = item.IndexOf(':');
-                    string priorityS = item.Substring(index + 1);
-                    if (Enum.GetNames(typeof(Priority)).Contains(priorityS))
-                    {
-                        priority = (Priority)Enum.Parse(typeof(Priority), priorityS);
-                    }
-                    else
-                    {
-                        throw new FormatException("Error in enum priority: " + item);
-                    }
-                }
-                else if (item.StartsWith("repeatable"))
-                {
-                    canBeRepeated = true;
-                }
-                else if (item.StartsWith("unsafe"))
-                {
-                    checkForProblems = false;
-                }
-                else if (item.StartsWith("end"))
-                {
-                    endingCode = true;
-                }
-                else if (item.StartsWith("noDisassembly"))
-                {
-                    canBeDisAssembled = false;
-                }
-                else if (item.StartsWith("noAssembly"))
-                {
-                    canBeAssembled = false;
-                }
-                else if (item.StartsWith("indexMode"))
-                {
-                    int index = item.IndexOf(':');
-                    string indexModeS = item.Substring(index + 1);
-                    indexMode = int.Parse(indexModeS);
-                }
-                else if (item.StartsWith("terminatingList"))
-                {
-                    int index = item.IndexOf(':');
-                    string endingByteS = item.Substring(index + 1);
-                    endingByte = (byte)int.Parse(endingByteS);
-                    itemList = true;
-                }
-                else if (item.StartsWith("offsetMod"))
-                {
-                    int index = item.IndexOf(':');
-                    string offsetModeS = item.Substring(index + 1);
-                    offsetMod = (byte)int.Parse(offsetModeS);
-                }
-                else
-                {
-                    throw new FormatException("Unknown option " +
-                        item + " in parameter " + header.name);
-                }
-            } 
-            #endregion
-
-            //if (priority == Priority.none && header.number1 == 0)
-            //{
-            //    throw new Exception("ID has to be non-zero for default priority.");
-            //}
-
-            header.number2 = header.number2 * indexMode;
-
-            List<TemplateParameter> parameters = new List<TemplateParameter>();
-            for (int i = 1; i < lines.Count; i++)
-            {
-                ParsedLine line = lines[i].ParsedLine;
-                line.number1 *= indexMode;
-                line.number2 *= indexMode;
-                TemplateParameter param = ParsedLine.ParseParameter(line);
-                parameters.Add(param);
-            }
-
-            ICodeTemplate code;
-            if (itemList)
-            {
-                code = new TerminatingStringTemplate(header.name, parameters, endingByte, offsetMod);
-            }
-            else
-            {
-                code = new CodeTemplate(header.name, header.number1, header.number2, parameters, canBeRepeated, checkForProblems, endingCode, offsetMod, canBeAssembled, canBeDisAssembled);
-            }
-            return code;
-        }
-
-
-
-        public void WriteDocs(TextWriter writer)
-        {
-            var indentedWriter = new IndentedTextWriter(writer, " ");
-            List<string> names = new List<string>();
-            
-            foreach (var code in docs)
-            {
-                string[] newNames = code.Key.Split('.');
-                int same = names.GetEqualsInBeginning(newNames);
-                indentedWriter.Indent -= names.Count;
-                indentedWriter.Indent += same;
-                for (int i = same; i < newNames.Length; i++)
-                {
-                    indentedWriter.WriteLine(newNames[i]);
-                    indentedWriter.Indent++;
-                }
-                
-                var sortedDocs = new Dictionary<string, List<DocCode>>();
-                foreach (var docCode in code.Value)
-                {
-                    List<DocCode> list = sortedDocs.GetOldOrSetNew(docCode.code.Name);
-                    list.Add(docCode);
-                }
-                foreach (var list in sortedDocs.Values)
-                {
-                    WriteCode(list, indentedWriter);
-                    writer.WriteLine();
-                }
-
-                names.Clear();
-                names.AddRange(newNames);
-            }
-        }
-
-        private void WriteCode(List<DocCode> list, IndentedTextWriter writer)
-        {
-            if (list[0].code is CodeTemplate)
-            {
-                CodeTemplate[] templates = Array.ConvertAll<DocCode, CodeTemplate>(
-                    list.ToArray(),
-                    x => x.code as CodeTemplate);
-
-                WriteCodeTemplates(list, writer, templates);
-            }
-            else if (list[0].code is TerminatingStringTemplate)
-            {
-                TerminatingStringTemplate[] templates = Array.ConvertAll<DocCode, TerminatingStringTemplate>(
-                    list.ToArray(),
-                    x => x.code as TerminatingStringTemplate);
-                WriteTerminatingStringTemplate(list, writer, templates);
-            }
-            else if (list[0].code is IFixedDocString)
-            {
-                string text = (list[0].code as IFixedDocString).DocString;
-
-                foreach (var line in text.Split("\n\r".ToCharArray(), 
-                    StringSplitOptions.RemoveEmptyEntries))
-                {
-                    writer.WriteLine(line);
-                }
-            }
-        }
-
-        private static void WriteTerminatingStringTemplate(IList<DocCode> list,
-            IndentedTextWriter writer, IList<TerminatingStringTemplate> templates)
-        {            
-            //TerminatingStringTemplate.WriteDoc(writer, template);
-
-            var parameterDocs = new Dictionary<string, List<string>>(
-                StringComparer.CurrentCultureIgnoreCase);
-
-            var templatesSortedByGame = new Dictionary<string, List<TerminatingStringTemplate>>();
-
-            for (int i = 0; i < templates.Count; i++)
-            {
-                string key = list[i].languages.ToHumanString();
-                List<TerminatingStringTemplate> tempList = templatesSortedByGame.GetOldOrSetNew(key);
-                tempList.Add(templates[i]);
-                
-                List<string> values = parameterDocs.GetOldOrSetNew(templates[i].Parameter.Name);
-                values.AddRange(list[i].parameterDocs[templates[i].Parameter.Name]);
-            }
-
-            foreach (var item in templatesSortedByGame)
-            {
-                writer.WriteLine(item.Key + ":");
-                writer.Indent++;
-                foreach (var template in item.Value)
-                {
-                    WriteDoc(writer, template);
-                }
-                writer.Indent--;
-            }
-            writer.WriteLineNoTabs("");
-
-            writer.Indent++;
-
-            string[] mainDoc = null;
-            foreach (var item in list)
-            {
-                if (item.mainDoc.Count > 0)
-                {
-                    mainDoc = item.mainDoc.ToArray();
-                    break;
-                }
-            }
-
-            if (mainDoc != null)
-            {
-                foreach (var item in list[0].mainDoc)
-                {
-                    writer.WriteLine(item);
-                }
-            }
-#if DEBUG
-            else
-            {
-                writer.WriteLine("No doc for this code found.");
-            }
-#endif
-            if (parameterDocs.Count > 0)
-            {
-                WriteParameters(writer, parameterDocs);
-            }
-            writer.Indent--;
-        }
-
-        private static void WriteCodeTemplates(IList<DocCode> list, 
-            IndentedTextWriter indentedWriter, 
-            IList<CodeTemplate> templates)
-        {
-            var parameterDocs = new Dictionary<string, List<string>>(
-                StringComparer.CurrentCultureIgnoreCase);
-
-            var templatesSortedByGame = new Dictionary<string, List<CodeTemplate>>();
-            
-            for (int i = 0; i < templates.Count; i++)
-            {
-                string key = list[i].languages.ToHumanString();
-                List<CodeTemplate> tempList = templatesSortedByGame.GetOldOrSetNew(key);
-                tempList.Add(templates[i]);
-                
-                foreach (var parameter in templates[i])
-                {
-                    List<string> values = parameterDocs.GetOldOrSetNew(parameter.Name);
-                    values.AddRange(list[i].parameterDocs[parameter.Name]);     
-                }
-            }
-
-            foreach (var item in templatesSortedByGame)
-            {
-                indentedWriter.WriteLine(item.Key + ":");
-                indentedWriter.Indent++;
-                foreach (var template in item.Value)
-                {
-                    WriteDoc(indentedWriter, template);
-                }
-                indentedWriter.Indent--;
-            }
-
-            indentedWriter.Indent++;
-
-            List<string> mainDoc = new List<string>();
-            foreach (var item in list)
-            {
-                if (item.mainDoc.Count > 0)
-                {
-                    mainDoc.AddRange(item.mainDoc);
-                    break;
-                }
-            }
-
-            if (mainDoc.Count > 0)
-            {
-                indentedWriter.WriteLineNoTabs("");
-                foreach (var item in mainDoc)
-                {
-                    indentedWriter.WriteLine(item);
-                }
-            }
-#if DEBUG
-            else
-            {
-                indentedWriter.WriteLine("No doc for this code found.");
-            } 
-#endif
-            if (parameterDocs.Count > 0)
-            {
-                WriteParameters(indentedWriter, parameterDocs);
-            }
-            indentedWriter.Indent--;
-        }
-
-        private static void WriteDoc(TextWriter writer, CodeTemplate code)
-        {
-            writer.Write(code.Name);
-            writer.Write(' ');
-            foreach (var parameter in code)
-            {
-                if (parameter.MaxDimensions > 1)
-                {
-                    writer.Write('[');
-                    for (int i = 0; i < parameter.MaxDimensions; i++)
-                    {
-                        WriteName(writer, parameter.Name, i, parameter.MaxDimensions);
-                        if (i != parameter.MaxDimensions - 1)
-                        {
-                            writer.Write(", ");
-                        }
-                    }
-                    writer.Write("] ");
-                }
-                else
-                {
-                    WriteName(writer, parameter.Name, 0, parameter.MaxDimensions);
-                    writer.Write(' ');
-                }
-            }
-            writer.WriteLine();
-        }
-
-        private static void WriteDocData(System.IO.TextWriter writer, TemplateParameter parameter)
-        {
-            if (parameter.MaxDimensions != 1)
-            {
-                if (parameter.MaxDimensions == parameter.MinDimensions)
-                {
-                    writer.WriteLine("Amount of coordinates is {0}.", parameter.MaxDimensions);
-                }
-                else
-                {
-                    writer.WriteLine("Amount of coordinates can range from {0} to {1}.",
-                        parameter.MinDimensions, parameter.MaxDimensions);
-                }
-            }
-
-            long max, min;
-            if (parameter.Signed)
-            {
-                max = 1 << parameter.BitsPerCoord;
-                min = 0;
-            }
-            else
-            {
-                max = 1 << (parameter.BitsPerCoord - 1);
-                min = -max - 1;
-            }
-            writer.WriteLine("Parameter accepts values from {0} to {1}.", min, max);
-
-            if (parameter.Pointer)
-            {
-                writer.WriteLine("Parameter will transform passed offsets into pointers.");
-            }
-        }
-
-        private static void WriteDoc(System.IO.TextWriter writer, TerminatingStringTemplate template)
-        {
-            writer.WriteLine("{0} {1}1 {1}2 ... {1}N", template.Name, template.Parameter.Name);
-        }
-
-        private static void WriteName(System.IO.TextWriter writer, string name, int i, int max)
-        {
-            string extraName;
-            bool surround;
-            if (max == 1)
-            {
-                surround = name.Contains(' ');
-                extraName = "";
-            }
-            else if (max == 2 &&
-                (name.Contains("Position") ||
-                 name.Contains("position") ||
-                 name.Contains("Location") ||
-                 name.Contains("location") ||
-                 name.Contains("Coordinate") ||
-                 name.Contains("coordinate")
-                ))
-            {
-                surround = false;
-                if (i == 0)
-                {
-                    extraName = " X";
-                }
-                else
-                {
-                    extraName = " Y";
-                }
-            }
-            else
-            {
-                surround = false;
-                extraName = " " + (i + 1).ToString();
-            }
-
-            if (surround)
-            {
-                writer.Write('*');
-                writer.Write(name + extraName);
-                writer.Write('*');
-            }
-            else
-            {
-                writer.Write(name + extraName);
-            }
-        }
-
-        private static void WriteParameters(IndentedTextWriter indentedWriter, 
-            Dictionary<string, List<string>> parameterDocs)
-        {
-            indentedWriter.WriteLineNoTabs("");
-            indentedWriter.WriteLine("Parameters:");
-            indentedWriter.Indent++;
-
-            foreach (var item in parameterDocs)
-            {
-                if (item.Value.Count > 0)
-                {
-                    indentedWriter.WriteLine("{0} = {1}", item.Key, item.Value[0]);
-                    indentedWriter.Indent += item.Key.Length + 3;
-                    for (int i = 1; i < item.Value.Count; i++)
-                    {
-                        indentedWriter.WriteLine(item.Value[i]);
-                    }
-                    indentedWriter.Indent -= item.Key.Length + 3;
-                }
-                else
-                {
-                    indentedWriter.WriteLine("{0}", item.Key);
-                }
-            }
-            indentedWriter.Indent--;
-        }
-
-        private class LanguageElement
-        {
-            List<string> docComments;
-            string mainLine;
-            ParsedLine parsedLine;
-
-            public bool IsParameter
-            {
-                get;
-                private set;
-            }
-            public ParsedLine ParsedLine
-            {
-                get { return parsedLine; }
-            }
-            public string MainLine
-            {
-                get { return mainLine; }
-            }
-
-            public LanguageElement()
-            {
-                docComments = new List<string>();
-            }
-
-            public void AddDoc(string line)
-            {
-                docComments.Add(line);
-            }
-
-            public void SetMainLine(string line)
-            {
-                IsParameter = char.IsWhiteSpace(line[0]);
-                mainLine = line;
-                parsedLine = ParsedLine.ParseLine(line);
-            }
-
-            public string[] GetDocLines()
-            {
-                return docComments.ToArray();
-            }
-
-            public override string ToString()
-            {
-                return mainLine;
-            }
-        }
-
-        private struct ParsedLine
-        {
-            public string name;
-            public int number1;
-            public int number2;
-            public string[] flags;
-
-            public static TemplateParameter ParseParameter(ParsedLine line)
-            {
-                int minDimensions = 1;
-                int maxDimensions = 1;
-
-                bool pointer = false;
-                bool isFixed = false;
-                bool signed = false;
-                int prefBase = 16;
-                Priority pointedPriority = Priority.none;
-
-                foreach (string item in line.flags)
-                {
-                    if (item.Length == 0)
-                    {
-                        continue;
-                    }
-                    int index = item.IndexOf(':');
-                    if (item.StartsWith("pointer"))
-                    {
-                        pointer = true;
-                        if (index > 0)
-                        {
-                            string priority = item.Substring(index + 1);
-                            if (Enum.GetNames(typeof(Priority)).Contains(priority))
-                            {
-                                pointedPriority = (Priority)Enum.Parse(typeof(Priority), priority);
-                            }
-                        }
-                    }
-                    else if (item.StartsWith("coordinates") || item.StartsWith("coordinate"))
-                    {
-                        if (index < 0)
-                            throw new FormatException("No : in option " + item);
-                        string dimensionsS = item.Substring(index + 1);
-                        if (dimensionsS.Contains("-"))
-                        {
-                            string[] dimensionsSS = dimensionsS.Split('-');
-
-                            minDimensions = int.Parse(dimensionsSS[0]);
-                            maxDimensions = int.Parse(dimensionsSS[1]);
-                        }
-                        else
-                        {
-                            int dimensions = int.Parse(dimensionsS);
-                            minDimensions = dimensions;
-                            maxDimensions = dimensions;
-                        }
-                    }
-                    else if (item.StartsWith("preferredBase"))
-                    {
-                        if (index < 0)
-                            throw new FormatException("No : in option " + item);
-                        string valueS = item.Substring(index + 1);
-                        prefBase = valueS.GetValue();
-                    }
-                    else if (item.StartsWith("fixed"))
-                    {
-                        isFixed = true;
-                    }
-                    else if (item.StartsWith("signed"))
-                    {
-                        signed = true;
-                    }
-                    else
-                    {
-                        throw new FormatException("Unknown option " +
-                            item + " in parameter " + line.name);
-                    }
-                }
-
-                TemplateParameter param = new TemplateParameter(line.name, line.number1, line.number2, minDimensions,
-                    maxDimensions, pointer, pointedPriority, signed, isFixed, prefBase);
-                return param;
-            }
-
-            public static ParsedLine ParseLine(string line)
-            {
-                ParsedLine parsedLine = new ParsedLine();
-                string[] split = line.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                parsedLine.name = split[0].Trim();
-                parsedLine.number1 = StringExtensions.GetValue(split[1].Trim());
-                parsedLine.number2 = StringExtensions.GetValue(split[2].Trim());
-                if (split.Length > 3)
-                {
-                    List<string> options = new List<string>(split[3].Split(" -".GetArray(), StringSplitOptions.RemoveEmptyEntries));
-                    for (int i = 0; i < options.Count; i++)
-                    {
-                        options[i] = options[i].Trim();
-                    }
-                    parsedLine.flags = options.ToArray();
-
-                }
-                else
-                {
-                    parsedLine.flags = new string[0];
-                }
-                return parsedLine;
-            }
-        }
-
-        private struct DocCode
-        {
-            public List<string> mainDoc;
-            public string[] languages;
-            public ICodeTemplate code;
-            public Priority priority;
-            public Dictionary<string, List<string>> parameterDocs;
-
-            public override string ToString()
-            {
-                return code.ToString();
-            }
-        }
-
+      get
+      {
+        return this.languages;
+      }
     }
+
+    public LanguageProcessor()
+      : this(false, (IComparer<ICodeTemplate>) Comparer<ICodeTemplate>.Default, StringComparer.OrdinalIgnoreCase)
+    {
+    }
+
+    public LanguageProcessor(IComparer<ICodeTemplate> templateComparer)
+      : this(false, templateComparer, StringComparer.OrdinalIgnoreCase)
+    {
+    }
+
+    public LanguageProcessor(bool collectDocComments)
+      : this(collectDocComments, (IComparer<ICodeTemplate>) Comparer<ICodeTemplate>.Default, StringComparer.OrdinalIgnoreCase)
+    {
+    }
+
+    public LanguageProcessor(bool collectDocComments, IComparer<ICodeTemplate> equalityComparer, StringComparer stringComparer)
+    {
+      this.collectDocComments = collectDocComments;
+      this.templateComparer = equalityComparer;
+      this.stringComparer = stringComparer;
+      this.docs = (IDictionary<string, List<LanguageProcessor.DocCode>>) new SortedDictionary<string, List<LanguageProcessor.DocCode>>((IComparer<string>) new NaturalComparer());
+      this.languages = (IDictionary<string, ICodeTemplateStorer>) new Dictionary<string, ICodeTemplateStorer>();
+    }
+
+    public void ProcessCode(string folder, string extension)
+    {
+      if (!Directory.Exists(folder))
+        throw new DirectoryNotFoundException("Folder " + folder + " not found.");
+      DirectoryInfo directoryInfo = new DirectoryInfo(folder);
+      folder = Path.GetFullPath(folder);
+      FileInfo[] files = directoryInfo.GetFiles("*" + extension, SearchOption.AllDirectories);
+      this.elements = (IDictionary<string, List<LanguageProcessor.LanguageElement>>) new Dictionary<string, List<LanguageProcessor.LanguageElement>>();
+      foreach (FileInfo fileInfo in files)
+        this.ParseLinesInFile(fileInfo.FullName.Substring(folder.Length + 1, fileInfo.FullName.Length - folder.Length - extension.Length - 1), File.ReadLines(fileInfo.FullName));
+    }
+
+    public void ProcessCode(string file)
+    {
+      if (!File.Exists(file))
+        throw new DirectoryNotFoundException("File " + file + " not found.");
+      this.ParseLinesInFile(Path.GetFileName(file), File.ReadLines(file));
+    }
+
+    private void ParseLinesInFile(string file, IEnumerable<string> lines)
+    {
+      List<LanguageProcessor.LanguageElement> languageElementList = new List<LanguageProcessor.LanguageElement>();
+      LanguageProcessor.LanguageElement languageElement = new LanguageProcessor.LanguageElement();
+      foreach (string line in lines)
+      {
+        if (line.ContainsNonWhiteSpace())
+        {
+          if ((int) line[0] == 35)
+          {
+            if (this.collectDocComments && line.Length > 1 && (int) line[1] == 35)
+              languageElement.AddDoc(line.Substring(2));
+          }
+          else
+          {
+            languageElement.SetMainLine(line);
+            languageElementList.Add(languageElement);
+            languageElement = new LanguageProcessor.LanguageElement();
+          }
+        }
+      }
+      if (this.collectDocComments)
+      {
+        int index = 0;
+        while (index < languageElementList.Count)
+        {
+          LanguageProcessor.DocCode doc = this.MakeCode((IList<LanguageProcessor.LanguageElement>) languageElementList, ref index);
+          foreach (string language in doc.languages)
+          {
+              this.AddCode(doc, language);
+          }
+          this.docs.GetOldOrSetNew<string, List<LanguageProcessor.DocCode>>(file.Replace('\\', '.')).Add(doc);
+        }
+        this.elements[file] = languageElementList;
+      }
+      else
+      {
+        int index = 0;
+        while (index < languageElementList.Count)
+        {
+          LanguageProcessor.DocCode doc = this.MakeCode((IList<LanguageProcessor.LanguageElement>) languageElementList, ref index);
+          foreach (string language in doc.languages)
+            this.AddCode(doc, language);
+        }
+      }
+    }
+
+    private void AddCode(LanguageProcessor.DocCode doc, string language)
+    {
+      ICodeTemplateStorer codeTemplateStorer;
+      if (!this.languages.TryGetValue(language, out codeTemplateStorer))
+        this.languages[language] = (ICodeTemplateStorer) new CodeTemplateStorer(this.templateComparer);
+      this.languages[language].AddCode(doc.code, doc.priority);
+      this.languages[language].AddCode(doc.code.CopyWithNewName("_0x"+doc.code.ID.ToString("X4")), doc.priority);
+      if(doc.code.ID<=0xFF)
+      {
+          this.languages[language].AddCode(doc.code.CopyWithNewName("_0x" + doc.code.ID.ToString("X2")), doc.priority);
+      }
+    }
+
+    private LanguageProcessor.DocCode MakeCode(IList<LanguageProcessor.LanguageElement> elements, ref int index)
+    {
+      List<LanguageProcessor.LanguageElement> languageElementList = new List<LanguageProcessor.LanguageElement>();
+      do
+      {
+        languageElementList.Add(elements[index]);
+        ++index;
+      }
+      while (index < elements.Count && elements[index].IsParameter);
+      List<string> stringList = new List<string>();
+      Priority priority;
+      ICodeTemplate code = this.ParseCode((IList<LanguageProcessor.LanguageElement>) languageElementList, (ICollection<string>) stringList, out priority);
+      LanguageProcessor.DocCode docCode = new LanguageProcessor.DocCode();
+      docCode.code = code;
+      docCode.priority = priority;
+      docCode.languages = stringList.Count <= 0 ? this.languages.Keys.ToArray<string>() : stringList.ToArray();
+      if (this.collectDocComments)
+      {
+        docCode.mainDoc = new List<string>((IEnumerable<string>) languageElementList[0].GetDocLines());
+        docCode.parameterDocs = new Dictionary<string, List<string>>();
+        for (int index1 = 1; index1 < languageElementList.Count; ++index1)
+          docCode.parameterDocs.GetOldOrSetNew<string, List<string>>(languageElementList[index1].ParsedLine.name).AddRange((IEnumerable<string>) languageElementList[index1].GetDocLines());
+      }
+      return docCode;
+    }
+
+    private ICodeTemplate ParseCode(IList<LanguageProcessor.LanguageElement> lines, ICollection<string> usedLanguages, out Priority priority)
+    {
+      LanguageProcessor.ParsedLine parsedLine1 = lines[0].ParsedLine;
+      priority = Priority.none;
+      bool canBeRepeated = false;
+      bool chechForProblems = true;
+      bool end = false;
+      bool canBeDisassembled = true;
+      bool canBeAssembled = true;
+      int num1 = 1;
+      bool flag1 = false;
+      byte num2 = 0;
+      int num3 = 4;
+      foreach (string flag2 in parsedLine1.flags)
+      {
+        if (flag2.StartsWith("language") || flag2.StartsWith("game"))
+        {
+          string[] strArray = flag2.Split(new char[1]{ ':' }, StringSplitOptions.RemoveEmptyEntries);
+          for (int index = 1; index < strArray.Length; ++index)
+            usedLanguages.Add(strArray[index].Trim());
+        }
+        else if (flag2.StartsWith("priority"))
+        {
+          int num4 = flag2.IndexOf(':');
+          string str = flag2.Substring(num4 + 1);
+          if (!((IEnumerable<string>) Enum.GetNames(typeof (Priority))).Contains<string>(str))
+            throw new FormatException("Error in enum priority: " + flag2);
+          priority = (Priority) Enum.Parse(typeof (Priority), str);
+        }
+        else if (flag2.StartsWith("repeatable"))
+          canBeRepeated = true;
+        else if (flag2.StartsWith("unsafe"))
+          chechForProblems = false;
+        else if (flag2.StartsWith("end"))
+          end = true;
+        else if (flag2.StartsWith("noDisassembly"))
+          canBeDisassembled = false;
+        else if (flag2.StartsWith("noAssembly"))
+          canBeAssembled = false;
+        else if (flag2.StartsWith("indexMode"))
+        {
+          int num4 = flag2.IndexOf(':');
+          num1 = int.Parse(flag2.Substring(num4 + 1));
+        }
+        else if (flag2.StartsWith("terminatingList"))
+        {
+          int num4 = flag2.IndexOf(':');
+          num2 = (byte) int.Parse(flag2.Substring(num4 + 1));
+          flag1 = true;
+        }
+        else
+        {
+          if (!flag2.StartsWith("offsetMod"))
+            throw new FormatException("Unknown option " + flag2 + " in parameter " + parsedLine1.name);
+          int num4 = flag2.IndexOf(':');
+          num3 = (int) (byte) int.Parse(flag2.Substring(num4 + 1));
+        }
+      }
+      parsedLine1.number2 = parsedLine1.number2 * num1;
+      List<TemplateParameter> templateParameterList = new List<TemplateParameter>();
+      for (int index = 1; index < lines.Count; ++index)
+      {
+        LanguageProcessor.ParsedLine parsedLine2 = lines[index].ParsedLine;
+        parsedLine2.number1 *= num1;
+        parsedLine2.number2 *= num1;
+        TemplateParameter parameter = LanguageProcessor.ParsedLine.ParseParameter(parsedLine2);
+        templateParameterList.Add(parameter);
+      }
+      return !flag1 ? (ICodeTemplate) new CodeTemplate(parsedLine1.name, parsedLine1.number1, parsedLine1.number2, (IEnumerable<TemplateParameter>) templateParameterList, canBeRepeated, chechForProblems, end, num3, canBeAssembled, canBeDisassembled, this.stringComparer) : (ICodeTemplate) new TerminatingStringTemplate(parsedLine1.name, (IEnumerable<TemplateParameter>) templateParameterList, (int) num2, num3, this.stringComparer);
+    }
+
+    public void WriteDocs(TextWriter writer)
+    {
+      IndentedTextWriter writer1 = new IndentedTextWriter(writer, " ");
+      List<string> a = new List<string>();
+      foreach (KeyValuePair<string, List<LanguageProcessor.DocCode>> doc in (IEnumerable<KeyValuePair<string, List<LanguageProcessor.DocCode>>>) this.docs)
+      {
+        string[] strArray = doc.Key.Split('.');
+        int equalsInBeginning = a.GetEqualsInBeginning<string>((IList<string>) strArray);
+        writer1.Indent -= a.Count;
+        writer1.Indent += equalsInBeginning;
+        for (int index = equalsInBeginning; index < strArray.Length; ++index)
+        {
+          writer1.WriteLine(strArray[index]);
+          ++writer1.Indent;
+        }
+        Dictionary<string, List<LanguageProcessor.DocCode>> dict = new Dictionary<string, List<LanguageProcessor.DocCode>>();
+        foreach (LanguageProcessor.DocCode docCode in doc.Value)
+          dict.GetOldOrSetNew<string, List<LanguageProcessor.DocCode>>(docCode.code.Name).Add(docCode);
+        foreach (List<LanguageProcessor.DocCode> list in dict.Values)
+        {
+          this.WriteCode(list, writer1);
+          writer.WriteLine();
+        }
+        a.Clear();
+        a.AddRange((IEnumerable<string>) strArray);
+      }
+    }
+
+    private void WriteCode(List<LanguageProcessor.DocCode> list, IndentedTextWriter writer)
+    {
+      if (list[0].code is CodeTemplate)
+      {
+        CodeTemplate[] codeTemplateArray = Array.ConvertAll<LanguageProcessor.DocCode, CodeTemplate>(list.ToArray(), (Converter<LanguageProcessor.DocCode, CodeTemplate>) (x => x.code as CodeTemplate));
+        LanguageProcessor.WriteCodeTemplates((IList<LanguageProcessor.DocCode>) list, writer, (IList<CodeTemplate>) codeTemplateArray);
+      }
+      else if (list[0].code is TerminatingStringTemplate)
+      {
+        TerminatingStringTemplate[] terminatingStringTemplateArray = Array.ConvertAll<LanguageProcessor.DocCode, TerminatingStringTemplate>(list.ToArray(), (Converter<LanguageProcessor.DocCode, TerminatingStringTemplate>) (x => x.code as TerminatingStringTemplate));
+        LanguageProcessor.WriteTerminatingStringTemplate((IList<LanguageProcessor.DocCode>) list, writer, (IList<TerminatingStringTemplate>) terminatingStringTemplateArray);
+      }
+      else
+      {
+        if (!(list[0].code is IFixedDocString))
+          return;
+        foreach (string str in (list[0].code as IFixedDocString).DocString.Split("\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
+          writer.WriteLine(str);
+      }
+    }
+
+    private static void WriteTerminatingStringTemplate(IList<LanguageProcessor.DocCode> list, IndentedTextWriter writer, IList<TerminatingStringTemplate> templates)
+    {
+      Dictionary<string, List<string>> dictionary = new Dictionary<string, List<string>>((IEqualityComparer<string>) StringComparer.CurrentCultureIgnoreCase);
+      Dictionary<string, List<TerminatingStringTemplate>> dict = new Dictionary<string, List<TerminatingStringTemplate>>();
+      for (int index = 0; index < templates.Count; ++index)
+      {
+        string humanString = ((IEnumerable<string>) list[index].languages).ToHumanString<string>();
+        dict.GetOldOrSetNew<string, List<TerminatingStringTemplate>>(humanString).Add(templates[index]);
+        dictionary.GetOldOrSetNew<string, List<string>>(templates[index].Parameter.name).AddRange((IEnumerable<string>) list[index].parameterDocs[templates[index].Parameter.name]);
+      }
+      foreach (KeyValuePair<string, List<TerminatingStringTemplate>> keyValuePair in dict)
+      {
+        writer.WriteLine(keyValuePair.Key + ":");
+        ++writer.Indent;
+        foreach (TerminatingStringTemplate template in keyValuePair.Value)
+          TerminatingStringTemplate.WriteDoc((TextWriter) writer, template);
+        --writer.Indent;
+      }
+      writer.WriteLineNoTabs("");
+      ++writer.Indent;
+      string[] strArray = (string[]) null;
+      foreach (LanguageProcessor.DocCode docCode in (IEnumerable<LanguageProcessor.DocCode>) list)
+      {
+        if (docCode.mainDoc.Count > 0)
+        {
+          strArray = docCode.mainDoc.ToArray();
+          break;
+        }
+      }
+      if (strArray != null)
+      {
+        foreach (string str in list[0].mainDoc)
+          writer.WriteLine(str);
+      }
+      if (dictionary.Count > 0)
+        LanguageProcessor.WriteParameters(writer, dictionary);
+      --writer.Indent;
+    }
+
+    private static void WriteCodeTemplates(IList<LanguageProcessor.DocCode> list, IndentedTextWriter indentedWriter, IList<CodeTemplate> templates)
+    {
+      Dictionary<string, List<string>> dictionary = new Dictionary<string, List<string>>((IEqualityComparer<string>) StringComparer.CurrentCultureIgnoreCase);
+      Dictionary<string, List<CodeTemplate>> dict = new Dictionary<string, List<CodeTemplate>>();
+      for (int index = 0; index < templates.Count; ++index)
+      {
+        string humanString = ((IEnumerable<string>) list[index].languages).ToHumanString<string>();
+        dict.GetOldOrSetNew<string, List<CodeTemplate>>(humanString).Add(templates[index]);
+        foreach (TemplateParameter templateParameter in templates[index])
+          dictionary.GetOldOrSetNew<string, List<string>>(templateParameter.name).AddRange((IEnumerable<string>) list[index].parameterDocs[templateParameter.name]);
+      }
+      foreach (KeyValuePair<string, List<CodeTemplate>> keyValuePair in dict)
+      {
+        indentedWriter.WriteLine(keyValuePair.Key + ":");
+        ++indentedWriter.Indent;
+        foreach (CodeTemplate code in keyValuePair.Value)
+          CodeTemplate.WriteDoc((TextWriter) indentedWriter, code);
+        --indentedWriter.Indent;
+      }
+      ++indentedWriter.Indent;
+      List<string> stringList = new List<string>();
+      foreach (LanguageProcessor.DocCode docCode in (IEnumerable<LanguageProcessor.DocCode>) list)
+      {
+        if (docCode.mainDoc.Count > 0)
+        {
+          stringList.AddRange((IEnumerable<string>) docCode.mainDoc);
+          break;
+        }
+      }
+      if (stringList.Count > 0)
+      {
+        indentedWriter.WriteLineNoTabs("");
+        foreach (string str in stringList)
+          indentedWriter.WriteLine(str);
+      }
+      if (dictionary.Count > 0)
+        LanguageProcessor.WriteParameters(indentedWriter, dictionary);
+      --indentedWriter.Indent;
+    }
+
+    private static void WriteParameters(IndentedTextWriter indentedWriter, Dictionary<string, List<string>> parameterDocs)
+    {
+      indentedWriter.WriteLineNoTabs("");
+      indentedWriter.WriteLine("Parameters:");
+      ++indentedWriter.Indent;
+      foreach (KeyValuePair<string, List<string>> parameterDoc in parameterDocs)
+      {
+        if (parameterDoc.Value.Count > 0)
+        {
+          indentedWriter.WriteLine("{0} = {1}", (object) parameterDoc.Key, (object) parameterDoc.Value[0]);
+          indentedWriter.Indent += parameterDoc.Key.Length + 3;
+          for (int index = 1; index < parameterDoc.Value.Count; ++index)
+            indentedWriter.WriteLine(parameterDoc.Value[index]);
+          indentedWriter.Indent -= parameterDoc.Key.Length + 3;
+        }
+        else
+          indentedWriter.WriteLine("{0}", (object) parameterDoc.Key);
+      }
+      --indentedWriter.Indent;
+    }
+
+    private class LanguageElement
+    {
+      private List<string> docComments;
+      private string mainLine;
+      private LanguageProcessor.ParsedLine parsedLine;
+
+      public bool IsParameter { get; private set; }
+
+      public LanguageProcessor.ParsedLine ParsedLine
+      {
+        get
+        {
+          return this.parsedLine;
+        }
+      }
+
+      public string MainLine
+      {
+        get
+        {
+          return this.mainLine;
+        }
+      }
+
+      public LanguageElement()
+      {
+        this.docComments = new List<string>();
+      }
+
+      public void AddDoc(string line)
+      {
+        this.docComments.Add(line);
+      }
+
+      public void SetMainLine(string line)
+      {
+        this.IsParameter = char.IsWhiteSpace(line[0]);
+        this.mainLine = line;
+        this.parsedLine = LanguageProcessor.ParsedLine.ParseLine(line);
+      }
+
+      public string[] GetDocLines()
+      {
+        return this.docComments.ToArray();
+      }
+
+      public override string ToString()
+      {
+        return this.mainLine;
+      }
+    }
+
+    private struct ParsedLine
+    {
+      public string name;
+      public int number1;
+      public int number2;
+      public string[] flags;
+
+      public static TemplateParameter ParseParameter(LanguageProcessor.ParsedLine line)
+      {
+        int minDimensions = 1;
+        int maxDimensions = 1;
+        bool pointer = false;
+        bool isFixed = false;
+        bool signed = false;
+        int valueBase = 16;
+        Priority pointedPriority = Priority.none;
+        foreach (string flag in line.flags)
+        {
+          if (flag.Length != 0)
+          {
+            int num1 = flag.IndexOf(':');
+            if (flag.StartsWith("pointer"))
+            {
+              pointer = true;
+              if (num1 > 0)
+              {
+                string str = flag.Substring(num1 + 1);
+                if (((IEnumerable<string>) Enum.GetNames(typeof (Priority))).Contains<string>(str))
+                  pointedPriority = (Priority) Enum.Parse(typeof (Priority), str);
+              }
+            }
+            else if (flag.StartsWith("coordinates") || flag.StartsWith("coordinate"))
+            {
+              if (num1 < 0)
+                throw new FormatException("No : in option " + flag);
+              string s = flag.Substring(num1 + 1);
+              if (s.Contains("-"))
+              {
+                string[] strArray = s.Split('-');
+                minDimensions = int.Parse(strArray[0]);
+                maxDimensions = int.Parse(strArray[1]);
+              }
+              else
+              {
+                int num2 = int.Parse(s);
+                minDimensions = num2;
+                maxDimensions = num2;
+              }
+            }
+            else if (flag.StartsWith("preferredBase"))
+            {
+              if (num1 < 0)
+                throw new FormatException("No : in option " + flag);
+              valueBase = flag.Substring(num1 + 1).GetValue();
+            }
+            else if (flag.StartsWith("fixed"))
+            {
+              isFixed = true;
+            }
+            else
+            {
+              if (!flag.StartsWith("signed"))
+                throw new FormatException("Unknown option " + flag + " in parameter " + line.name);
+              signed = true;
+            }
+          }
+        }
+        TemplateParameter templateParameter = new TemplateParameter(line.name, line.number1, line.number2, minDimensions, maxDimensions, pointer, pointedPriority, signed, isFixed);
+        templateParameter.SetBase(valueBase);
+        return templateParameter;
+      }
+
+      public static LanguageProcessor.ParsedLine ParseLine(string line)
+      {
+        LanguageProcessor.ParsedLine parsedLine = new LanguageProcessor.ParsedLine();
+        string[] strArray = line.Split(new char[1]{ ',' }, StringSplitOptions.RemoveEmptyEntries);
+        parsedLine.name = strArray[0].Trim();
+        parsedLine.number1 = strArray[1].Trim().GetValue();
+        parsedLine.number2 = strArray[2].Trim().GetValue();
+        if (strArray.Length > 3)
+        {
+          List<string> stringList = new List<string>((IEnumerable<string>) strArray[3].Split(" -".GetArray<string>(), StringSplitOptions.RemoveEmptyEntries));
+          for (int index = 0; index < stringList.Count; ++index)
+            stringList[index] = stringList[index].Trim();
+          parsedLine.flags = stringList.ToArray();
+        }
+        else
+          parsedLine.flags = new string[0];
+        return parsedLine;
+      }
+    }
+
+    private struct DocCode
+    {
+      public List<string> mainDoc;
+      public string[] languages;
+      public ICodeTemplate code;
+      public Priority priority;
+      public Dictionary<string, List<string>> parameterDocs;
+
+      public override string ToString()
+      {
+        return this.code.ToString();
+      }
+    }
+  }
 }

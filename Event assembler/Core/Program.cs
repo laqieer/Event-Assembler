@@ -1,467 +1,444 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Program
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code;
 using Nintenlord.Event_Assembler.Core.Code.Language;
-using Nintenlord.Event_Assembler.Core.Code.Language.Old;
-using Nintenlord.Event_Assembler.Core.Code.Language.Parser;
+using Nintenlord.Event_Assembler.Core.Code.Language.Expression;
+using Nintenlord.Event_Assembler.Core.Code.Language.Lexer;
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors;
 using Nintenlord.Event_Assembler.Core.Code.Templates;
 using Nintenlord.Event_Assembler.Core.GBA;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.IO;
-using Nintenlord.Utility.Strings;
-using Nintenlord.Event_Assembler.Core.Code.Language.Types.IntegerRepresentations;
+using Nintenlord.Parser;
+using Nintenlord.Utility;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace Nintenlord.Event_Assembler.Core
 {
-    /// <summary>
-    /// Done:
-    ///       Fix problem with merging codes making label positions vanish.
-    ///       Fix template comparing to return UNIT instead of UNIT 0.
-    ///       Fix problem with 1 bit long parameters.
-    ///       Fix problem with bits getting reversed when reading/writing. *A FEATURE, NOT A BUG*
-    ///       Make preprocessor handle stacked block comments properly.
-    ///       Make sure paths like \Test\test.txt are processed correctly.
-    ///       Fix Template choosing 0 0 0 0 over [0,0,0,0]
-    ///       Make EACodeLanguage to reveal it's codes somehow.
-    ///       Add pool ability to preprocessor, with second parameter as optional label name.
-    ///       Add built-in macros like ?(), >(), =(), cond(), vector buiding and unbuilding, etc.
-    ///       Rewrite macro storing to make searching faster.
-    ///       Rewrite code template storing to make searching faster.
-    ///       Remove ChooseEnum from IMEssageLog.
-    ///       Move LanguageRawsAnalyzer to Core.
-    ///       Make codes give better error codes if code exists but amount of parameters is right.
-    ///       Make $XX008001 fail properly.
-    ///
-    /// Later releases:
-    ///       Make Disassembly use BinaryReader or some sort of input-stream somehow.
-    ///       Rewrite offset handling to make use IntegerType properly.
-    ///       Add support for disassembling fixed (other parameters affect) amount of pointed code.
-    ///       Make structure disassembly more modular.
-    ///       More options to disassembly.
-    ///       Disassembly rewrite to use types(meaning Eliwood will appear in disassembled chapters)
-    ///       
-    ///       Move game specific things to separate files.
-    ///       All the remaining language specific things to raws, meaning you can add custom languages
-    ///       Type system(class, character, position etc)
-    ///       Make language raws processing and code assembling more modular for possible future IDE.
-    ///       
-    ///       Make recursive macros work properly.
-    ///       Make preprocessor properly report errors with line "#"
-    ///       Add list/vector processing macros aka Head, Tail and Cons, then implement EAstdlib
-    ///         macros based on them like Map, Fold and etc.
-    ///       Add built-in macro for getting lists/vectors length.
-    ///       Make IDefineCollection to reveal it's defines and macros somehow.
-    ///       Make macros give better error codes if macro exists but amount of parameters is right.
-    /// </summary>
-    public static class Program
+  public static class Program
+  {
+    public static readonly StringComparer stringComparer = StringComparer.OrdinalIgnoreCase;
+    private static IDictionary<string, EACodeLanguage> languages;
+
+    public static bool CodesLoaded
     {
-        static private IDictionary<string, EACodeLanguage> languages;
-        static private readonly StringComparer stringComparer = StringComparer.OrdinalIgnoreCase;
-        
-        //StdOut - output
-        //StdIn - input
-        //StdError - errors and messages
-        //0 - D, A or Doc, assemble, disassemble or doc generation
-        //1 - language (assembly or disassembly only)
-        //2 - disassembly mode (disassembly only)
-        //3 - offset to disassemble (disassembly only)
-        //4 - priority to disassemble (disassembly only)
-        //5 - length to disassemble (disassembly only)
-        //flags: -addEndGuards
-        //       -raws:Folder or file
-        //       -rawsExt:extension
-        //       -output:File
-        //       -input:File
-        //       -error:File
-        //       -docHeader:File
-        //       -docFooter:File
-        private static void Main(string[] args)
-        {
-            if (args.Length == 0)
-            {
-                return;
-            }
-
-            var messageLog = new MessageLog(1000);
-
-            //var cmd = HandleFlags(flags, messageLog);
-            var cmd = new CommandLineArgs();
-            var error = cmd.SetArgs(args);
-
-            if (!error.CausedError)
-            {
-                try
-                {
-                    Run(messageLog, cmd);
-                }
-                catch (Exception e)
-                {
-                    messageLog.AddError(e.Message);
-                }
-            }
-
-            if (cmd.errorFile != null)
-            {
-                using (var writer = new StreamWriter(cmd.errorFile))
-                {
-                    messageLog.WriteToStream(writer);
-                }
-            }
-            else
-            {
-                messageLog.WriteToStream(Console.Error);
-            }
-            messageLog.Clear();
-        }
-
-        private static void Run(MessageLog messageLog, CommandLineArgs cmd)
-        {
-            if (stringComparer.Compare(cmd.operation, "doc") == 0)
-            {
-                MakeDoc(cmd.outputFile, cmd.rawsFolder, cmd.rawsExtension, cmd.isDirectory, cmd.docHeader, cmd.docFooter);
-            }
-            else if (stringComparer.Compare(cmd.operation, "plusplus") == 0)
-            {
-#if !DEBUG
-                throw new NotImplementedException();
-#endif
-                LoadCodes(cmd.rawsFolder, cmd.rawsExtension, cmd.isDirectory, false);
-
-                EACodeLanguage language;
-                if (languages.TryGetValue(cmd.language, out language))
-                {
-                    HighlightingHelper.GetNotepadPlusPluslanguageDoc(language, cmd.outputFile);
-                }
-            }
-            else if (stringComparer.Compare(cmd.operation, "prognotepad") == 0)
-            {
-                LoadCodes(cmd.rawsFolder, cmd.rawsExtension, cmd.isDirectory, false);
-                
-                HighlightingHelper.GetProgrammersNotepadlanguageDoc(languages.Values, cmd.outputFile);
-            }
-            else
-            {
-                LoadCodes(cmd.rawsFolder, cmd.rawsExtension, cmd.isDirectory, false);
-
-                if (languages.ContainsKey(cmd.language))
-                {
-                    if (stringComparer.Compare(cmd.operation, "A") == 0)
-                    {
-                        Assemble(cmd.inputFile, cmd.outputFile, cmd.language, messageLog);
-                    }
-                    else if (stringComparer.Compare(cmd.operation, "D") == 0)
-                    {
-                        Disassemble(
-                            cmd.inputFile,
-                            cmd.outputFile,
-                            cmd.language,
-                            cmd.addEndGuards,
-                            cmd.disassemblyMode.Value,
-                            cmd.offset.Value,
-                            cmd.priority.HasValue ? cmd.priority.Value : Priority.none,
-                            cmd.size.HasValue ? cmd.size.Value : 0,
-                            messageLog);
-                    }
-                    else messageLog.AddError("{0} is not a valid operation.", cmd.operation);
-                }
-                else messageLog.AddError("{0} is not a valid language", cmd.language);
-            }
-        }
-
-
-        public static bool CodesLoaded
-        {
-            get { return languages != null; }
-        }
-
-        public static void Assemble(string inputFile, string outputFile, string languageName, ILog messageLog)
-        {
-            TextReader reader;
-            bool close;
-            if (inputFile != null)
-            {
-                reader = File.OpenText(inputFile);
-                close = true;
-            }
-            else
-            {
-                reader = Console.In;
-                close = false;
-            }
-
-            EACodeLanguage language = languages[languageName];
-
-            if (outputFile != null)
-            {
-                if (File.Exists(outputFile))
-                {
-                    if (File.GetAttributes(outputFile).HasFlag(FileAttributes.ReadOnly))
-                    {
-                        messageLog.AddError("outputFile is read-only.");
-                        goto end;
-                    }
-                }
-
-                var cache = new ChangeStream();
-                using (BinaryWriter writer = new BinaryWriter(cache))
-                {
-                    Assemble(language, reader, writer, messageLog);
-                    if (messageLog.ErrorCount == 0)
-                    {
-                        using (Stream stream = File.OpenWrite(outputFile))
-                        {
-                            cache.WriteToFile(stream);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                messageLog.AddError("outputFile needs to be specified for assembly.");
-            }
-            end:
-
-            if (close)
-                reader.Close();
-        }
-
-        public static void Disassemble(string inputFile, string outputFile, string languageName,
-            bool addEndGuards, DisassemblyMode mode, int offset, Priority priority, int size, ILog messageLog)
-        {
-            if (!File.Exists(inputFile))
-            {
-                messageLog.AddError("File " + inputFile + " doesn't exist.");
-                return;
-            }
-            else if (File.Exists(outputFile))
-            {
-                if (File.GetAttributes(outputFile).HasFlag(FileAttributes.ReadOnly))
-                {
-                    messageLog.AddError("Output cannot be written to. It is read-only.");
-                    return;
-                }
-            }
-            
-            EACodeLanguage language = languages[languageName];
-            byte[] data = File.ReadAllBytes(inputFile);
-
-            if (offset > data.Length)
-            {
-                messageLog.AddError("Offset is larger than size of file.");
-            }
-            else
-            {
-                if (size <= 0 || size + offset > data.Length)
-                {
-                    size = data.Length - offset;
-                }
-                IEnumerable<string[]> code;
-                string[] defaultLines;
-                switch (mode)
-                {
-                    case DisassemblyMode.Block:
-                        code = language.Disassemble(data, offset, size, priority, addEndGuards, messageLog);
-                        defaultLines = CoreInfo.DefaultLines(language.Name,
-                            Path.GetFileName(inputFile), offset, size);
-                        break;
-                    case DisassemblyMode.ToEnd:
-                        code = language.DisassembleToEnd(data, offset, priority, addEndGuards, messageLog);
-                        defaultLines = CoreInfo.DefaultLines(language.Name,
-                            Path.GetFileName(inputFile), offset, null);
-                        break;
-                    case DisassemblyMode.Structure:
-                        code = language.DisassembleChapter(data, offset, addEndGuards, messageLog);
-                        defaultLines = CoreInfo.DefaultLines(language.Name,
-                            Path.GetFileName(inputFile), offset, null);
-                        break;
-                    default:
-                        throw new ArgumentException();
-                }
-
-                if (messageLog.ErrorCount == 0)
-                {
-                    using (StreamWriter sw = new StreamWriter(outputFile))
-                    {
-                        sw.WriteLine();
-                        sw.WriteLine(Frame(defaultLines, "//", 1));
-                        sw.WriteLine();
-
-                        foreach (string[] line in code)
-                        {
-                            sw.WriteLine(line.ToElementWiseString(" ", "", ""));
-                        }
-                    }
-                }
-            }
-        }
-        
-        public static void LoadCodes(string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
-        {
-            languages = new Dictionary<string, EACodeLanguage>();
-            LanguageProcessor pro = new LanguageProcessor(collectDocCodes, 
-                new TemplateComparer(), stringComparer);
-            IPointerMaker<int> ptrMaker = new GBAPointerMaker();
-            if (isDirectory)
-            {
-                pro.ProcessCode(rawsFolder, extension);
-            }
-            else
-            {
-                pro.ProcessCode(rawsFolder);
-            }
-            foreach (KeyValuePair<string, ICodeTemplateStorer> item in pro.Languages)
-            {
-                Tuple<string, List<Priority>>[][] pointerList;
-
-                switch (item.Key)
-                {
-                    case "FE6":
-                        pointerList = FE6CodeLanguage.PointerList;
-                        break;
-                    case "FE7":
-                        pointerList = FE7CodeLanguage.PointerList;
-                        break;
-                    case "FE8":
-                        pointerList = FE8CodeLanguage.PointerList;
-                        break;
-                    default:
-                        throw new NotSupportedException("Language " + item.Key + " not supported.");
-                }
-                ICodeTemplateStorer storer = item.Value;
-                if (item.Key == "FE8")
-                {
-                    storer.AddCode(new GenericFE8Template(), Priority.none);
-                }
-                EACodeLanguage language = new EACodeLanguage(
-                    item.Key, ptrMaker,
-                    pointerList,
-                    storer, stringComparer
-                    );
-                languages[item.Key] = language;
-            }
-
-        }
-                
-        public static void MakeDoc(string output, string rawsFolder, 
-            string extension, bool isDirectory, string header, string footer)
-        {
-            var pro = new LanguageProcessor(true,
-                new TemplateComparer(), stringComparer);
-            //IPointerMaker<int> ptrMaker = new GBAPointerMaker();
-            if (isDirectory)
-            {
-                pro.ProcessCode(rawsFolder, extension);
-            }
-            else
-            {
-                pro.ProcessCode(rawsFolder);
-            }
-            using (StreamWriter writer = File.CreateText(output))
-            {
-                if (header != null)
-                {
-                    writer.WriteLine(File.ReadAllText(header));
-                    writer.WriteLine();
-                }
-
-                pro.WriteDocs(writer);
-
-                if (footer != null)
-                {
-                    writer.WriteLine(File.ReadAllText(footer));
-                    writer.WriteLine();
-                }
-            }
-        }
-
-        public static void Preprocess(string originalFile, string outputFile, string game, ILog messageLog)
-        {
-            EACodeLanguage language = languages[game];
-
-            var predefined = new[]
-            {
-                "_" + game + "_",
-                "_EA_"
-            };
-
-            using (var preprocessor = new Preprocessor(messageLog))
-            {
-                preprocessor.AddReserved(language.GetCodeNames());
-                preprocessor.AddDefined(predefined);
-
-                using (var reader = File.OpenText(originalFile))
-                {
-                    var stream = new PreprocessingInputStream(reader, preprocessor);
-                    
-                    var writer = new StringWriter();
-                    while (true)
-                    {
-                        string line = stream.ReadLine();
-                        if (line == null)
-                        {
-                            break;
-                        }
-                        writer.WriteLine(line);
-                    }
-                    messageLog.AddMessage("Processed code:\n" + writer + "\nEnd processed code");
-                    //File.WriteAllText(outputFile, writer.ToString());   
-                    
-                }
-            }
-        }
-
-
-
-
-        private static void Assemble(EACodeLanguage language, TextReader input, BinaryWriter output, ILog log)
-        {
-            var predefined = new List<string>
-            {
-                "_" + language.Name + "_",
-                "_EA_"
-            };
-            using (IPreprocessor preprocessor = new Preprocessor(log))
-            {
-                preprocessor.AddReserved(language.GetCodeNames());
-                preprocessor.AddDefined(predefined.ToArray());
-
-                IInputStream stream = new PreprocessingInputStream(input, preprocessor);
-                    
-                language.Assemble(stream, output, log);
-            }
-        }
-                
-        private static string Frame(string[] lines, string toFrameWith, int padding)
-        {
-            int longestLine = lines.Aggregate(0, (i, s) => Math.Max(s.Length, i));
-
-            string fullFrame = toFrameWith.Repeat(padding * 2 + toFrameWith.Length * 2 + longestLine);
-            string hollowFrame = toFrameWith + " ".Repeat(padding * 2 + longestLine) + toFrameWith;
-            string paddingText = " ".Repeat(padding);
-
-            var builder = new StringBuilder();
-            builder.AppendLine(fullFrame);
-            builder.AppendLine(hollowFrame);
-
-            foreach (string line in lines)
-            {
-                builder.AppendLine(toFrameWith +
-                    paddingText +
-                    line.PadRight(longestLine, ' ') +
-                    paddingText +
-                    toFrameWith
-                    );
-            }
-
-            builder.AppendLine(hollowFrame);
-            builder.AppendLine(fullFrame);
-            return builder.ToString();
-        }
+      get
+      {
+        return Program.languages != null;
+      }
     }
+
+    private static void Main(string[] args)
+    {
+      if (args.Length == 0)
+        return;
+      TextWriterMessageLog writerMessageLog = new TextWriterMessageLog(Console.Error);
+      List<string> flags = new List<string>(args.Length);
+      List<string> stringList = new List<string>(args.Length);
+      foreach (string str in args)
+      {
+        if (str.StartsWith("-"))
+          flags.Add(str.TrimStart('-'));
+        else
+          stringList.Add(str);
+      }
+      string rawsFolder = "Language Raws";
+      string rawsExtension = ".txt";
+      bool isDirectory = true;
+      bool addEndGuards = false;
+      string inputFile = (string) null;
+      string outputFile = (string) null;
+      string errorFile = (string) null;
+      string docHeader = (string) null;
+      string docFooter = (string) null;
+      Program.HandleFlags(flags, (ILog) writerMessageLog, ref rawsFolder, ref rawsExtension, ref isDirectory, ref addEndGuards, ref inputFile, ref outputFile, ref errorFile, ref docHeader, ref docFooter);
+      StreamWriter streamWriter = (StreamWriter) null;
+      if (errorFile != null)
+      {
+        streamWriter = new StreamWriter(errorFile);
+        writerMessageLog.Writer = (TextWriter) streamWriter;
+      }
+      if (Program.stringComparer.Compare(stringList[0], "doc") == 0)
+      {
+        Program.MakeDoc(outputFile, rawsFolder, rawsExtension, isDirectory, docHeader, docFooter);
+      }
+      else if (inputFile != null)
+      {
+        if (Program.stringComparer.Compare(stringList[0], "plusplus") == 0)
+          throw new NotImplementedException();
+        if (Program.stringComparer.Compare(stringList[0], "prognotepad") == 0)
+        {
+          Program.LoadCodes(rawsFolder, rawsExtension, isDirectory, false);
+          try
+          {
+            HighlightingHelper.GetProgrammersNotepadlanguageDoc((IEnumerable<EACodeLanguage>) Program.languages.Values, outputFile);
+          }
+          catch (Exception ex)
+          {
+            writerMessageLog.AddError(ex.Message);
+          }
+        }
+        else
+        {
+          Program.LoadCodes(rawsFolder, rawsExtension, isDirectory, false);
+          if (Program.languages.ContainsKey(stringList[1]))
+          {
+            if (Program.stringComparer.Compare(stringList[0], "A") == 0)
+              Program.Assemble(inputFile, outputFile, stringList[1], (ILog) writerMessageLog);
+            else if (Program.stringComparer.Compare(stringList[0], "D") == 0)
+            {
+              DisassemblyMode result1;
+              if (stringList[2].TryGetEnum<DisassemblyMode>(out result1))
+              {
+                int offset;
+                if (stringList[3].TryGetValue(out offset))
+                {
+                  int size = 0;
+                  Priority result2 = Priority.none;
+                  if (result1 != DisassemblyMode.Structure && !stringList[4].TryGetEnum<Priority>(out result2))
+                    writerMessageLog.AddError(stringList[4] + " is not a valid priority");
+                  else if (result1 == DisassemblyMode.Block && (!stringList[5].TryGetValue(out size) || size < 0))
+                    writerMessageLog.AddError(stringList[5] + " is not a valid size");
+                  else
+                    Program.Disassemble(inputFile, outputFile, stringList[1], addEndGuards, result1, offset, result2, size, (ILog) writerMessageLog);
+                }
+                else
+                  writerMessageLog.AddError(stringList[3] + " is not a valid number");
+              }
+              else
+                writerMessageLog.AddError(stringList[2] + "is not a valid disassembly mode");
+            }
+            else
+              writerMessageLog.AddError(stringList[0] + "is not a valid action to do");
+          }
+          else
+            writerMessageLog.AddError(stringList[1] + "is not a valid language");
+        }
+      }
+      writerMessageLog.PrintAll();
+      writerMessageLog.Clear();
+      if (streamWriter == null)
+        return;
+      streamWriter.Dispose();
+    }
+
+    private static void HandleFlags(List<string> flags, ILog messageLog, ref string rawsFolder, ref string rawsExtension, ref bool isDirectory, ref bool addEndGuards, ref string inputFile, ref string outputFile, ref string errorFile, ref string docHeader, ref string docFooter)
+    {
+      foreach (string flag in flags)
+      {
+        int length = flag.IndexOf(':');
+        string str1;
+        string str2;
+        if (length >= 0)
+        {
+          str1 = flag.Substring(0, length);
+          str2 = flag.Substring(length + 1);
+        }
+        else
+        {
+          str1 = flag;
+          str2 = "";
+        }
+        switch (str1)
+        {
+          case "addEndGuards":
+            addEndGuards = true;
+            continue;
+          case "raws":
+            if (File.Exists(str2))
+            {
+              rawsFolder = str2;
+              isDirectory = false;
+              continue;
+            }
+            if (Directory.Exists(str2))
+            {
+              rawsFolder = str2;
+              isDirectory = true;
+              continue;
+            }
+            messageLog.AddError("File or folder " + str2 + " doesn't exist.");
+            continue;
+          case "rawsExt":
+            if (!str2.ContainsAnyOf(Path.GetInvalidFileNameChars()))
+            {
+              rawsExtension = str2;
+              continue;
+            }
+            messageLog.AddError("Extension " + str2 + " is not valid.");
+            continue;
+          case "input":
+            if (File.Exists(str2))
+            {
+              inputFile = str2;
+              continue;
+            }
+            messageLog.AddError("File " + str2 + " doesn't exist.");
+            continue;
+          case "output":
+            if (Program.IsValidFileName(str2))
+            {
+              outputFile = str2;
+              continue;
+            }
+            messageLog.AddError("Name " + str2 + " isn't valid for a file.");
+            continue;
+          case "error":
+            if (Program.IsValidFileName(str2))
+            {
+              errorFile = str2;
+              continue;
+            }
+            messageLog.AddError("Name " + str2 + " isn't valid for a file.");
+            continue;
+          case "docHeader":
+            if (Program.IsValidFileName(str2))
+            {
+              docHeader = str2;
+              continue;
+            }
+            messageLog.AddError("Name " + str2 + " isn't valid for a file.");
+            continue;
+          case "docFooter":
+            if (Program.IsValidFileName(str2))
+            {
+              docFooter = str2;
+              continue;
+            }
+            messageLog.AddError("Name " + str2 + " isn't valid for a file.");
+            continue;
+          default:
+            messageLog.AddError("Flag " + str1 + " doesn't exist.");
+            continue;
+        }
+      }
+    }
+
+    private static bool IsValidFileName(string name)
+    {
+      return true;
+    }
+
+    public static void Assemble(string inputFile, string outputFile, string languageName, ILog messageLog)
+    {
+      TextReader input;
+      bool flag;
+      if (inputFile != null)
+      {
+        input = (TextReader) File.OpenText(inputFile);
+        flag = true;
+      }
+      else
+      {
+        input = Console.In;
+        flag = false;
+      }
+      EACodeLanguage language = Program.languages[languageName];
+      if (outputFile != null)
+      {
+        if (File.Exists(outputFile) && File.GetAttributes(outputFile).HasFlag((Enum) FileAttributes.ReadOnly))
+        {
+          messageLog.AddError("outputFile is read-only.");
+        }
+        else
+        {
+          ChangeStream changeStream = new ChangeStream();
+          using (BinaryWriter output = new BinaryWriter((Stream) changeStream))
+          {
+            Program.Assemble(language, input, output, messageLog);
+            if (messageLog.ErrorCount == 0)
+            {
+              using (Stream stream = (Stream) File.OpenWrite(outputFile))
+                changeStream.WriteToFile(stream);
+            }
+          }
+        }
+      }
+      else
+        messageLog.AddError("outputFile needs to be specified for assembly.");
+      if (!flag)
+        return;
+      input.Close();
+    }
+
+    public static void Disassemble(string inputFile, string outputFile, string languageName, bool addEndGuards, DisassemblyMode mode, int offset, Priority priority, int size, ILog messageLog)
+    {
+      if (!File.Exists(inputFile))
+        messageLog.AddError("File " + inputFile + " doesn't exist.");
+      else if (File.Exists(outputFile) && File.GetAttributes(outputFile).HasFlag((Enum) FileAttributes.ReadOnly))
+      {
+        messageLog.AddError("Output cannot be written to. It is read-only.");
+      }
+      else
+      {
+        EACodeLanguage eaCodeLanguage = Program.languages[languageName];
+        byte[] code = File.ReadAllBytes(inputFile);
+        if (offset > code.Length)
+        {
+          messageLog.AddError("Offset is larger than size of file.");
+        }
+        else
+        {
+          if (size <= 0 || size + offset > code.Length)
+            size = code.Length - offset;
+          IEnumerable<string[]> strArrays;
+          string[] lines;
+          switch (mode)
+          {
+            case DisassemblyMode.Block:
+              strArrays = eaCodeLanguage.Disassemble(code, offset, size, priority, addEndGuards, messageLog);
+              lines = CoreInfo.DefaultLines(eaCodeLanguage.Name, Path.GetFileName(inputFile), offset, new int?(size));
+              break;
+            case DisassemblyMode.ToEnd:
+              strArrays = eaCodeLanguage.DisassembleToEnd(code, offset, priority, addEndGuards, messageLog);
+              lines = CoreInfo.DefaultLines(eaCodeLanguage.Name, Path.GetFileName(inputFile), offset, new int?());
+              break;
+            case DisassemblyMode.Structure:
+              strArrays = eaCodeLanguage.DisassembleChapter(code, offset, addEndGuards, messageLog);
+              lines = CoreInfo.DefaultLines(eaCodeLanguage.Name, Path.GetFileName(inputFile), offset, new int?());
+              break;
+            default:
+              throw new ArgumentException();
+          }
+          if (messageLog.ErrorCount != 0)
+            return;
+          using (StreamWriter streamWriter = new StreamWriter(outputFile))
+          {
+            streamWriter.WriteLine();
+            streamWriter.WriteLine(Program.Frame(lines, "//", 1));
+            streamWriter.WriteLine();
+            foreach (string[] strArray in strArrays)
+              streamWriter.WriteLine(((IEnumerable<string>) strArray).ToElementWiseString<string>(" ", "", ""));
+          }
+        }
+      }
+    }
+
+    public static void LoadCodes(string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
+    {
+      Program.languages = (IDictionary<string, EACodeLanguage>) new Dictionary<string, EACodeLanguage>();
+      LanguageProcessor languageProcessor = new LanguageProcessor(collectDocCodes, (IComparer<ICodeTemplate>) new TemplateComparer(), Program.stringComparer);
+      IPointerMaker pointerMaker = (IPointerMaker) new GBAPointerMaker();
+      if (isDirectory)
+        languageProcessor.ProcessCode(rawsFolder, extension);
+      else
+        languageProcessor.ProcessCode(rawsFolder);
+      foreach (KeyValuePair<string, ICodeTemplateStorer> language in (IEnumerable<KeyValuePair<string, ICodeTemplateStorer>>) languageProcessor.Languages)
+      {
+        Tuple<string, List<Priority>>[][] pointerList;
+        switch (language.Key)
+        {
+          case "FE6":
+            pointerList = FE6CodeLanguage.PointerList;
+            break;
+          case "FE7":
+            pointerList = FE7CodeLanguage.PointerList;
+            break;
+          case "FE8":
+            pointerList = FE8CodeLanguage.PointerList;
+            break;
+          default:
+            throw new NotSupportedException("Language " + language.Key + " not supported.");
+        }
+        ICodeTemplateStorer codeStorer = language.Value;
+        if (language.Key == "FE8")
+          codeStorer.AddCode((ICodeTemplate) new GenericFE8Template(), Priority.none);
+        EACodeLanguage eaCodeLanguage = new EACodeLanguage(language.Key, pointerMaker, pointerList, codeStorer, Program.stringComparer);
+        Program.languages[language.Key] = eaCodeLanguage;
+      }
+    }
+
+    public static void MakeDoc(string output, string rawsFolder, string extension, bool isDirectory, string header, string footer)
+    {
+      LanguageProcessor languageProcessor = new LanguageProcessor(true, (IComparer<ICodeTemplate>) new TemplateComparer(), Program.stringComparer);
+      GBAPointerMaker gbaPointerMaker = new GBAPointerMaker();
+      if (isDirectory)
+        languageProcessor.ProcessCode(rawsFolder, extension);
+      else
+        languageProcessor.ProcessCode(rawsFolder);
+      using (StreamWriter text = File.CreateText(output))
+      {
+        if (header != null)
+        {
+          text.WriteLine(File.ReadAllText(header));
+          text.WriteLine();
+        }
+        languageProcessor.WriteDocs((TextWriter) text);
+        if (footer == null)
+          return;
+        text.WriteLine(File.ReadAllText(footer));
+        text.WriteLine();
+      }
+    }
+
+    public static void Preprocess(string originalFile, string outputFile, string game, ILog messageLog)
+    {
+      EACodeLanguage eaCodeLanguage = Program.languages[game];
+      List<string> stringList = new List<string>();
+      stringList.Add("_" + game + "_");
+      stringList.Add("_EA_");
+      using (IPreprocessor preprocessor = (IPreprocessor) new Preprocessor(messageLog))
+      {
+        preprocessor.AddReserved(eaCodeLanguage.GetCodeNames());
+        preprocessor.AddDefined((IEnumerable<string>) stringList.ToArray());
+        using (StreamReader streamReader = File.OpenText(originalFile))
+        {
+          using (IInputStream inputStream = (IInputStream) new PreprocessingInputStream((TextReader) streamReader, preprocessor))
+          {
+            StringWriter stringWriter = new StringWriter();
+            while (true)
+            {
+              string str = inputStream.ReadLine();
+              if (str != null)
+                stringWriter.WriteLine(str);
+              else
+                break;
+            }
+            messageLog.AddMessage("Processed code:\n" + stringWriter.ToString() + "\nEnd processed code");
+          }
+        }
+      }
+    }
+
+    private static void Assemble(EACodeLanguage language, TextReader input, BinaryWriter output, ILog log)
+    {
+      List<string> stringList = new List<string>();
+      stringList.Add("_" + language.Name + "_");
+      stringList.Add("_EA_");
+      using (IPreprocessor preprocessor = (IPreprocessor) new Preprocessor(log))
+      {
+        preprocessor.AddReserved(language.GetCodeNames());
+        preprocessor.AddDefined((IEnumerable<string>) stringList.ToArray());
+        using (IInputStream inputStream = (IInputStream) new PreprocessingInputStream(input, preprocessor))
+          new EAExpressionAssembler(language.CodeStorage, (IParser<Token, IExpression<int>>) new TokenParser<int>(new Func<string, int>(StringExtensions.GetValue))).Assemble((IPositionableInputStream) inputStream, output, log);
+      }
+    }
+
+    private static string Frame(string[] lines, string toFrameWith, int padding)
+    {
+      int num = 0;
+      for (int index = 0; index < lines.Length; ++index)
+        num = Math.Max(num, lines[index].Length);
+      string str1 = toFrameWith.Repeat(padding * 2 + toFrameWith.Length * 2 + num);
+      string str2 = toFrameWith + " ".Repeat(padding * 2 + num) + toFrameWith;
+      string str3 = " ".Repeat(padding);
+      StringBuilder stringBuilder = new StringBuilder();
+      stringBuilder.AppendLine(str1);
+      stringBuilder.AppendLine(str2);
+      foreach (string line in lines)
+        stringBuilder.AppendLine(toFrameWith + str3 + line.PadRight(num, ' ') + str3 + toFrameWith);
+      stringBuilder.AppendLine(str2);
+      stringBuilder.AppendLine(str1);
+      return stringBuilder.ToString();
+    }
+  }
 }

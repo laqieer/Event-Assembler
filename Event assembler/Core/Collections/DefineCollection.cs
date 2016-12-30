@@ -1,290 +1,228 @@
-﻿using System;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Collections.DefineCollection
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
+using Nintenlord.Utility;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Nintenlord.Utility;
 
 namespace Nintenlord.Event_Assembler.Core.Collections
 {
-    class DefineCollection : IDefineCollection, IEnumerable<KeyValuePair<string, int>>
+  internal class DefineCollection : IDefineCollection, IEnumerable<KeyValuePair<string, int>>, IEnumerable
+  {
+    private readonly int maxIter = 100;
+    private Dictionary<KeyValuePair<string, int>, DefineCollection.Replacer> values;
+    private HashSet<string> originals;
+
+    public DefineCollection()
     {
-        private readonly int maxIter = 100;
-
-        private struct Replacer : IEquatable<Replacer>
-        {
-            private string toReplaceWith;
-
-            private string[] parameters;
-
-            public int AmountOfParameters
-            {
-                get { return parameters.Length; }
-            }
-
-            public Replacer(string toReplaceWith, string[] parameters)
-            {
-                this.toReplaceWith = toReplaceWith;
-                this.parameters = parameters;
-            }
-
-            public string GetReplacer()
-            {
-                return toReplaceWith;
-            }
-            
-            public string Replace(string[] parameters)
-            {
-                if (parameters.Length != this.parameters.Length)
-                {
-                    throw new ArgumentException();
-                }
-                StringBuilder builder = new StringBuilder(toReplaceWith);
-
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    builder.Replace(this.parameters[i], parameters[i].Trim());
-                }
-                return builder.ToString();
-            }
-
-
-            public static explicit operator KeyValuePair<string,string[]>(Replacer item)
-            {
-                return new KeyValuePair<string, string[]>(item.toReplaceWith, item.parameters);
-            }
-
-            #region IEquatable<Replacer> Members
-
-            public bool Equals(Replacer other)
-            {
-                return toReplaceWith.Equals(other.toReplaceWith)
-                    && parameters.Length == other.parameters.Length;
-            }
-
-            #endregion
-        }
-
-        private Dictionary<KeyValuePair<string, int>, Replacer> values;
-
-        private HashSet<string> originals;
-
-        public DefineCollection()
-        {
-            values = new Dictionary<KeyValuePair<string, int>, Replacer>();
-            originals = new HashSet<string>();
-        }
-
-        #region IDefineCollection Members
-
-        public void Add(string original, string replacer, params string[] parameters)
-        {
-            Replacer replacerNew = new Replacer(replacer, parameters);
-            values[new KeyValuePair<string, int>(original, parameters.Length)] = replacerNew;
-            originals.Add(original);
-        }
-
-        public void Add(string original, string replacer)
-        {
-            Replacer replacerNew = new Replacer(replacer, new string[0]);
-            values.Add(new KeyValuePair<string, int>(original, 0), replacerNew);
-            originals.Add(original);
-        }
-
-        public bool ContainsName(string item, params string[] parameters)
-        {
-            return values.ContainsKey(new KeyValuePair<string, int>(item, parameters.Length));
-        }
-
-        public bool ContainsName(string item)
-        {
-            foreach (var value in values)
-            {
-                if (value.Key.Key.Equals(item) && value.Value.AmountOfParameters == 0)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public string GetReplacer(string item, string[] parameters)
-        {
-            foreach (var value in values)
-            {
-                if (value.Key.Key.Equals(item) && value.Value.AmountOfParameters == parameters.Length)
-                {
-                    return value.Value.GetReplacer();
-                }
-            }
-            throw new KeyNotFoundException();
-        }
-
-        public string GetReplacer(string item)
-        {
-            foreach (var value in values)
-            {
-                if (value.Key.Key.Equals(item) && value.Value.AmountOfParameters == 0)
-                {
-                    return value.Value.GetReplacer();
-                }
-            }
-            throw new KeyNotFoundException();
-        }
-
-        public void Remove(string original)
-        {
-            values.Remove(new KeyValuePair<string, int>(original, 0));
-            originals.Remove(original);
-        }
-
-        public void Remove(string original, params string[] parameters)
-        {
-            values.Remove(new KeyValuePair<string, int>(original, parameters.Length));
-            originals.Remove(original);
-        }
-
-        public bool ApplyDefines(string s, out string newString)
-        {
-            StringBuilder builder = new StringBuilder(s);
-
-            SortedDictionary<int, string> containedOriginals = new SortedDictionary<int, string>(
-                new LamdaComparer<int>((x, y) => y - x));
-            int iter = 0;
-            while (GetContainedOriginals(builder.ToString(), containedOriginals) > 0 && iter < maxIter)
-            {
-                foreach (var item in containedOriginals)
-                {
-                    string[] parameters;
-                    string name = item.Value;
-                    int indexStart = item.Key + name.Length;
-
-                    string paramString;
-                    //Get parameters
-                    if (indexStart < builder.Length && builder[indexStart] == '(')
-                    {
-                        int depth = 1;
-                        int endIndex = indexStart;
-                        while (depth > 0 && ++endIndex < s.Length)
-                        {
-                            if (builder[endIndex] == ')')
-                            {
-                                depth--;
-                            }
-                            else if (builder[endIndex] == '(')
-                            {
-                                depth++;
-                            }
-                        }
-                        parameters = builder.ToString(indexStart + 1, endIndex - indexStart - 1).Split(',');
-                        paramString = builder.ToString(indexStart, endIndex - indexStart + 1);
-                        
-                    }
-                    else
-                    {
-                        parameters = new string[0];
-                        paramString = "";
-                    }
-                    
-                    for (int j = 0; j < parameters.Length; j++)
-                    {
-                        parameters[j] = parameters[j].Trim();
-                    }
-
-                    //Find correct macro
-                    Replacer replacer;
-                    KeyValuePair<string, int> key = new KeyValuePair<string, int>(name, parameters.Length);
-                    if (!values.TryGetValue(key, out replacer))
-                    {
-                        continue;
-                    }
-                    string toReplace = name + paramString;
-                    string replaceWith = replacer.Replace(parameters);
-
-                    builder.Replace(toReplace, replaceWith, item.Key, toReplace.Length);
-                }
-                containedOriginals.Clear();
-                iter++;
-            }
-            newString = builder.ToString();
-            return containedOriginals.Count == 0;
-            //return s;
-            //throw new NotImplementedException();
-        }
-
-        public CanCauseError<string> ApplyDefines(string original)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsValidName(string name)
-        {
-            return name.Length > 0 && name.All(IsValidCharacter);
-        }        
-
-        #endregion
-
-        private bool IsValidCharacter(char c)
-        {
-            bool characetr = Char.IsLetterOrDigit(c);
-            return characetr || c == '_';
-        }
-                
-        private int GetContainedOriginals(string s, IDictionary<int, string> containedOriginals)
-        {
-            foreach (var original in originals)
-            {
-                int index = s.IndexOf(original);
-                while (index >= 0)// && index + original.Length < s.Length && s[index - 1]
-                {
-                    bool can1;
-                    if (index > 0)
-                    {
-                        char c = s[index - 1];
-                        can1 = !IsValidCharacter(c);
-                    }
-                    else can1 = true;//in the beginning of the line
-
-                    bool can2;
-                    if (index + original.Length < s.Length)
-                    {
-                        char c = s[index + original.Length];
-                        can2 = !IsValidCharacter(c);
-                    }
-                    else can2 = true;//in the beginning end of the line
-
-                    if (can1 && can2 && !containedOriginals.ContainsKey(index))
-                    {
-                        containedOriginals[index] = original;
-                        break;
-                    }
-                    index = s.IndexOf(original, index + 1);
-                }
-            }
-            //containedOriginals((y, x) => x.Length - y.Length);
-            return containedOriginals.Count;
-        }
-
-
-
-        #region IEnumerable<KeyValuePair<string,int>> Members
-
-        public IEnumerator<KeyValuePair<string, int>> GetEnumerator()
-        {
-            return this.values.Keys.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        #endregion
-
-
+      this.values = new Dictionary<KeyValuePair<string, int>, DefineCollection.Replacer>();
+      this.originals = new HashSet<string>();
     }
+
+    public void Add(string original, string replacer, params string[] parameters)
+    {
+      DefineCollection.Replacer replacer1 = new DefineCollection.Replacer(replacer, parameters);
+      this.values[new KeyValuePair<string, int>(original, parameters.Length)] = replacer1;
+      this.originals.Add(original);
+    }
+
+    public void Add(string original, string replacer)
+    {
+      DefineCollection.Replacer replacer1 = new DefineCollection.Replacer(replacer, new string[0]);
+      this.values.Add(new KeyValuePair<string, int>(original, 0), replacer1);
+      this.originals.Add(original);
+    }
+
+    public bool ContainsName(string item, params string[] parameters)
+    {
+      return this.values.ContainsKey(new KeyValuePair<string, int>(item, parameters.Length));
+    }
+
+    public bool ContainsName(string item)
+    {
+      foreach (KeyValuePair<KeyValuePair<string, int>, DefineCollection.Replacer> keyValuePair in this.values)
+      {
+        if (keyValuePair.Key.Key.Equals(item) && keyValuePair.Value.AmountOfParameters == 0)
+          return true;
+      }
+      return false;
+    }
+
+    public string GetReplacer(string item, string[] parameters)
+    {
+      foreach (KeyValuePair<KeyValuePair<string, int>, DefineCollection.Replacer> keyValuePair in this.values)
+      {
+        if (keyValuePair.Key.Key.Equals(item) && keyValuePair.Value.AmountOfParameters == parameters.Length)
+          return keyValuePair.Value.GetReplacer();
+      }
+      throw new KeyNotFoundException();
+    }
+
+    public string GetReplacer(string item)
+    {
+      foreach (KeyValuePair<KeyValuePair<string, int>, DefineCollection.Replacer> keyValuePair in this.values)
+      {
+        if (keyValuePair.Key.Key.Equals(item) && keyValuePair.Value.AmountOfParameters == 0)
+          return keyValuePair.Value.GetReplacer();
+      }
+      throw new KeyNotFoundException();
+    }
+
+    public void Remove(string original)
+    {
+      this.values.Remove(new KeyValuePair<string, int>(original, 0));
+      this.originals.Remove(original);
+    }
+
+    public void Remove(string original, params string[] parameters)
+    {
+      this.values.Remove(new KeyValuePair<string, int>(original, parameters.Length));
+      this.originals.Remove(original);
+    }
+
+    public bool ApplyDefines(string s, out string newString)
+    {
+      StringBuilder stringBuilder = new StringBuilder(s);
+      SortedDictionary<int, string> sortedDictionary = new SortedDictionary<int, string>((IComparer<int>) new LamdaComparer<int>((Func<int, int, int>) ((x, y) => y - x)));
+      for (int index1 = 0; this.GetContainedOriginals(stringBuilder.ToString(), (IDictionary<int, string>) sortedDictionary) > 0 && index1 < this.maxIter; ++index1)
+      {
+        foreach (KeyValuePair<int, string> keyValuePair in sortedDictionary)
+        {
+          string key = keyValuePair.Value;
+          int startIndex = keyValuePair.Key + key.Length;
+          string[] parameters;
+          string str;
+          if (startIndex < stringBuilder.Length && (int) stringBuilder[startIndex] == 40)
+          {
+            int num = 1;
+            int index2 = startIndex;
+            while (num > 0 && ++index2 < s.Length)
+            {
+              if ((int) stringBuilder[index2] == 41)
+                --num;
+              else if ((int) stringBuilder[index2] == 40)
+                ++num;
+            }
+            parameters = stringBuilder.ToString(startIndex + 1, index2 - startIndex - 1).Split(',');
+            str = stringBuilder.ToString(startIndex, index2 - startIndex + 1);
+          }
+          else
+          {
+            parameters = new string[0];
+            str = "";
+          }
+          for (int index2 = 0; index2 < parameters.Length; ++index2)
+            parameters[index2] = parameters[index2].Trim();
+          DefineCollection.Replacer replacer;
+          if (this.values.TryGetValue(new KeyValuePair<string, int>(key, parameters.Length), out replacer))
+          {
+            string oldValue = key + str;
+            string newValue = replacer.Replace(parameters);
+            stringBuilder.Replace(oldValue, newValue, keyValuePair.Key, oldValue.Length);
+          }
+        }
+        sortedDictionary.Clear();
+      }
+      newString = stringBuilder.ToString();
+      return sortedDictionary.Count == 0;
+    }
+
+    public CanCauseError<string> ApplyDefines(string original)
+    {
+      throw new NotImplementedException();
+    }
+
+    public bool IsValidName(string name)
+    {
+      if (name.Length > 0)
+        return name.All<char>(new Func<char, bool>(this.IsValidCharacter));
+      return false;
+    }
+
+    private bool IsValidCharacter(char c)
+    {
+      if (!char.IsLetterOrDigit(c))
+        return (int) c == 95;
+      return true;
+    }
+
+    private int GetContainedOriginals(string s, IDictionary<int, string> containedOriginals)
+    {
+      foreach (string original in this.originals)
+      {
+        for (int key = s.IndexOf(original); key >= 0; key = s.IndexOf(original, key + 1))
+        {
+          if ((key <= 0 || !this.IsValidCharacter(s[key - 1])) && (key + original.Length >= s.Length || !this.IsValidCharacter(s[key + original.Length])) && !containedOriginals.ContainsKey(key))
+          {
+            containedOriginals[key] = original;
+            break;
+          }
+        }
+      }
+      return containedOriginals.Count;
+    }
+
+    public IEnumerator<KeyValuePair<string, int>> GetEnumerator()
+    {
+      return (IEnumerator<KeyValuePair<string, int>>) this.values.Keys.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator) this.GetEnumerator();
+    }
+
+    private struct Replacer : IEquatable<DefineCollection.Replacer>
+    {
+      private string toReplaceWith;
+      private string[] parameters;
+
+      public int AmountOfParameters
+      {
+        get
+        {
+          return this.parameters.Length;
+        }
+      }
+
+      public Replacer(string toReplaceWith, string[] parameters)
+      {
+        this.toReplaceWith = toReplaceWith;
+        this.parameters = parameters;
+      }
+
+      public static explicit operator KeyValuePair<string, string[]>(DefineCollection.Replacer item)
+      {
+        return new KeyValuePair<string, string[]>(item.toReplaceWith, item.parameters);
+      }
+
+      public string GetReplacer()
+      {
+        return this.toReplaceWith;
+      }
+
+      public string Replace(string[] parameters)
+      {
+        if (parameters.Length != this.parameters.Length)
+          throw new ArgumentException();
+        StringBuilder stringBuilder = new StringBuilder(this.toReplaceWith);
+        for (int index = 0; index < parameters.Length; ++index)
+          stringBuilder.Replace(this.parameters[index], parameters[index].Trim());
+        return stringBuilder.ToString();
+      }
+
+      public bool Equals(DefineCollection.Replacer other)
+      {
+        if (this.toReplaceWith.Equals(other.toReplaceWith))
+          return this.parameters.Length == other.parameters.Length;
+        return false;
+      }
+    }
+  }
 }

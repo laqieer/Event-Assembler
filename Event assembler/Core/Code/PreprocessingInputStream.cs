@@ -1,191 +1,185 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.PreprocessingInputStream
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Collections;
-using Nintenlord.Collections.Lists;
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.IO;
-using Nintenlord.Utility;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Nintenlord.Event_Assembler.Core.Code
 {
-    public class PreprocessingInputStream : IInputStream
+  public class PreprocessingInputStream : IInputStream, IPositionableInputStream, IDisposable
+  {
+    private IPreprocessor preprocessor;
+    private Stack<PreprocessingInputStream.PrimitiveStream> positions;
+    private LinkedArrayList<string> unreadLines;
+
+    public int LineNumber
     {
-        IPreprocessor preprocessor;
-        Stack<PrimitiveStream> positions;
-        LinkedArrayList<string> unreadLines;
-
-        public PreprocessingInputStream(TextReader reader, IPreprocessor preprocessor)
-        {
-            this.preprocessor = preprocessor;
-            this.positions = new Stack<PrimitiveStream>();
-            this.unreadLines = new LinkedArrayList<string>();
-            PrimitiveStream newData = new PrimitiveStream(reader);
-            positions.Push(newData);
-        }
-
-        private class PrimitiveStream
-        {
-            public int LineNumber
-            {
-                get;
-                private set;
-            }
-            public string OriginalLine
-            {
-                get;
-                private set;
-            }
-            public string Name
-            {
-                get;
-                private set;
-            }
-
-            private IEnumerator<string> lines;
-
-            public PrimitiveStream(TextReader reader)
-                : this(reader.LineEnumerator(), reader.GetReaderName())
-            {
-            }
-            
-            public PrimitiveStream(IEnumerable<string> reader, string name)
-            {
-                Name = name;
-                lines = reader.GetEnumerator();
-                LineNumber = 0;
-            }
-
-            public string ReadLine()
-            {
-                LineNumber++;
-                bool moved = lines.MoveNext();
-                OriginalLine = lines.Current;
-                return moved ? lines.Current : null;
-            }
-
-            public bool ReadLine(out string line)
-            {
-                LineNumber++;
-                bool moved = lines.MoveNext();
-                line = lines.Current;
-                OriginalLine = lines.Current;
-                return moved;
-            }
-
-            public void Close()
-            {
-                lines.Dispose();
-                OriginalLine = null;
-                LineNumber = -1;
-            }
-
-            public void Reset()
-            {
-                lines.Reset();
-                LineNumber = 0;
-                OriginalLine = null;
-            }
-        }
-
-        #region IInputStream Members
-        
-        public string ReadLine()
-        {
-            if (positions.Count == 0)
-                return null;
-
-            if (unreadLines.Count > 0)
-            {
-                string line = unreadLines.First;
-                unreadLines.RemoveFirst();
-                return line;
-            }
-            else
-            {
-                PrimitiveStream currentData = positions.Peek();
-                string line;
-
-                if (currentData.ReadLine(out line))
-                {
-                    string pros = preprocessor.Process(line, this);
-                    var codes = pros.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                    for (int i = 1; i < codes.Length; i++)
-                    {
-                        unreadLines.Add(codes[i]);
-                    }
-                    
-                    return codes.Length == 0 ? ReadLine() : codes[0];
-                }
-                else //End of file
-                {
-                    positions.Pop();
-                    if (positions.Count > 0)
-                    {
-                        currentData.Close();
-                    }
-                    return ReadLine();
-                }
-            }
-        }
-
-        public string PeekOriginalLine()
-        {
-            var top = positions.Peek();
-            string temp = top.OriginalLine;
-            
-            if (temp != null)
-            {
-                return temp;
-            }
-            else
-            {
-                throw new InvalidOperationException("No lines have been read or stream has passed the end.");
-            }
-        }
-        
-        public int LineNumber
-        {
-            get { return positions.Peek().LineNumber; }
-        }
-
-        public string CurrentFile
-        {
-            get { return positions.Peek().Name; }
-        }
-
-        public void OpenSourceFile(string path)
-        {
-            if (unreadLines.Count > 0)
-            {
-                throw new InvalidOperationException();
-            }
-            PrimitiveStream newData = new PrimitiveStream(File.ReadAllLines(path), Path.GetFileName(path));
-            positions.Push(newData);
-        }
-
-        public void OpenBinaryFile(string path)
-        {
-            if (unreadLines.Count > 0)
-            {
-                throw new InvalidOperationException();
-            }
-            byte[] data = File.ReadAllBytes(path);
-            unreadLines.AddLast(Array.ConvertAll<byte, string>(data, 
-                        x => x.ToString()
-                    ).ToElementWiseString(" ","BYTE ","")
-                );
-        }
-
-        public void AddNewLines(IEnumerable<string> lines)
-        {
-            foreach (var item in lines)
-            {
-                unreadLines.AddLast(item);
-            }
-        }
-
-        #endregion
+      get
+      {
+        return this.positions.Peek().LineNumber;
+      }
     }
+
+    public string CurrentFile
+    {
+      get
+      {
+        return this.positions.Peek().Name;
+      }
+    }
+
+    public PreprocessingInputStream(TextReader reader, IPreprocessor preprocessor)
+    {
+      this.preprocessor = preprocessor;
+      this.positions = new Stack<PreprocessingInputStream.PrimitiveStream>();
+      this.unreadLines = new LinkedArrayList<string>();
+      this.positions.Push(new PreprocessingInputStream.PrimitiveStream(reader));
+    }
+
+    public string ReadLine()
+    {
+      if (this.positions.Count == 0)
+        return (string) null;
+      if (this.unreadLines.Count > 0)
+      {
+        string first = this.unreadLines.First;
+        this.unreadLines.RemoveFirst();
+        return first;
+      }
+      PreprocessingInputStream.PrimitiveStream primitiveStream = this.positions.Peek();
+      string line;
+      if (primitiveStream.ReadLine(out line))
+      {
+        string[] strArray = this.preprocessor.Process(line, (IInputStream) this).Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        for (int index = 1; index < strArray.Length; ++index)
+          this.unreadLines.Add(strArray[index]);
+        if (strArray.Length != 0)
+          return strArray[0];
+        return this.ReadLine();
+      }
+      this.positions.Pop();
+      if (this.positions.Count > 0)
+        primitiveStream.Close();
+      return this.ReadLine();
+    }
+
+    public string PeekOriginalLine()
+    {
+      string originalLine = this.positions.Peek().OriginalLine;
+      if (originalLine != null)
+        return originalLine;
+      throw new InvalidOperationException("No lines have been read or stream has passed the end.");
+    }
+
+    public void OpenSourceFile(string path)
+    {
+      if (this.unreadLines.Count > 0)
+        throw new InvalidOperationException();
+      this.positions.Push(new PreprocessingInputStream.PrimitiveStream((TextReader) new StreamReader(path)));
+    }
+
+    public void OpenBinaryFile(string path)
+    {
+      if (this.unreadLines.Count > 0)
+        throw new InvalidOperationException();
+      this.unreadLines.AddLast(((IEnumerable<string>) Array.ConvertAll<byte, string>(File.ReadAllBytes(path), (Converter<byte, string>) (x => x.ToString()))).ToElementWiseString<string>(" ", "BYTE ", ""));
+    }
+
+    public void AddBytes(byte[] data)
+    {
+        if (this.unreadLines.Count > 0)
+            throw new InvalidOperationException();
+        this.unreadLines.AddLast(((IEnumerable<string>)Array.ConvertAll<byte, string>(data, (Converter<byte, string>)(x => x.ToString()))).ToElementWiseString<string>(" ", "BYTE ", ""));
+    }
+
+    public void AddNewLine(string line)
+    {
+        this.unreadLines.AddLast(line);
+    }
+
+    public void AddNewLines(IEnumerable<string> lines)
+    {
+      foreach (string line in lines)
+        this.unreadLines.AddLast(line);
+    }
+
+    public void Dispose()
+    {
+      foreach (PreprocessingInputStream.PrimitiveStream position in this.positions)
+        position.Close();
+      this.positions.Clear();
+    }
+
+    private class PrimitiveStream
+    {
+      private IEnumerator<string> lines;
+
+      public int LineNumber { get; private set; }
+
+      public string OriginalLine { get; private set; }
+
+      public string Name { get; private set; }
+
+	  private TextReader mySource;
+	  
+      public PrimitiveStream(TextReader reader)
+        : this(reader.LineEnumerator(), reader.GetReaderName())
+      {
+		  mySource = reader;
+      }
+
+      public PrimitiveStream(IEnumerable<string> reader, string name)
+      {
+        this.Name = name;
+        this.lines = reader.GetEnumerator();
+        this.LineNumber = 0;
+		
+		mySource = null;
+      }
+
+      public string ReadLine()
+      {
+        ++this.LineNumber;
+        bool flag = this.lines.MoveNext();
+        this.OriginalLine = this.lines.Current;
+        if (!flag)
+          return (string) null;
+        return this.lines.Current;
+      }
+
+      public bool ReadLine(out string line)
+      {
+        ++this.LineNumber;
+        bool flag = this.lines.MoveNext();
+        line = this.lines.Current;
+        this.OriginalLine = this.lines.Current;
+        return flag;
+      }
+
+      public void Close()
+      {
+        this.lines.Dispose();
+        this.OriginalLine = (string) null;
+        this.LineNumber = -1;
+		
+		if(mySource != null)
+			mySource.Close();
+      }
+
+      public void Reset()
+      {
+        this.lines.Reset();
+        this.LineNumber = 0;
+        this.OriginalLine = (string) null;
+      }
+    }
+  }
 }

@@ -1,116 +1,92 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenScanner
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.IO.Scanners;
+using System;
+using System.Collections.Generic;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language.Lexer
 {
-    sealed class TokenScanner : IStoringScanner<Token>
+  internal sealed class TokenScanner : IStoringScanner<Token>, IScanner<Token>
+  {
+    private List<Token> readTokens;
+    private IPositionableInputStream input;
+    private int tokenOffset;
+
+    public bool IsAtEnd { get; private set; }
+
+    public long Offset
     {
-        readonly List<Token> readTokens;
-        readonly IPositionableInputStream input;
-        int tokenOffset;
-
-        public TokenScanner(IPositionableInputStream input)
-        {
-            this.input = input;
-            readTokens = new List<Token>(0x1000);
-            tokenOffset = -1;
-            IsAtEnd = false;
-        }
-
-        private Token AtOffset(int offset)
-        {
-            return readTokens[offset];
-        }
-
-        #region IScanner<Token> Members
-
-        public bool IsAtEnd
-        {
-            get;
-            private set;
-        }
-
-        public long Offset
-        {
-            get
-            {
-                return tokenOffset;
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
-
-        public bool MoveNext()
-        {
-            if (IsAtEnd)
-                return false;
-
-            tokenOffset++;
-            while (tokenOffset >= readTokens.Count)
-            {
-                string line = input.ReadLine();
-                if (line == null)
-                {
-                    break;
-                }
-                readTokens.AddRange(Tokeniser.TokeniseLine(
-                    line, input.CurrentFile, input.LineNumber));
-            }
-            
-            IsAtEnd = tokenOffset >= readTokens.Count;
-
-            return !IsAtEnd;
-        }
-
-        public Token Current
-        {
-            get
-            {
-                if (tokenOffset < readTokens.Count)
-                {
-                    return readTokens[tokenOffset];
-                }
-                else
-                {
-                    throw tokenOffset == readTokens.Count ?
-                        new InvalidOperationException("Shouldn't have removed the case.") :
-                        new InvalidOperationException("End of tokens to read.");
-                }
-                //else if (tokenOffset == readTokens.Count)
-                //{
-                //    return new Token();
-                //}
-            }
-        }
-        
-        public bool CanSeek
-        {
-            get { return false; }
-        }
-        
-        #endregion
-
-        #region IStoringScanner<Token> Members
-
-        public Token this[long offset]
-        {
-            get { return this.AtOffset((int)offset); }
-        }
-        
-        public bool IsStored(long offset)
-        {
-            return offset >= 0 && offset < readTokens.Count;
-        }
-
-        public bool IsStored(long offset, long length)
-        {
-            return offset >= 0 && offset + length <= readTokens.Count;
-        }
-
-        #endregion
+      get
+      {
+        return (long) this.tokenOffset;
+      }
+      set
+      {
+        throw new NotSupportedException();
+      }
     }
+
+    public Token Current
+    {
+      get
+      {
+        if (this.tokenOffset > this.readTokens.Count)
+          throw new InvalidOperationException("End of tokens to read.");
+        if (this.tokenOffset == this.readTokens.Count)
+          return new Token();
+        return this.readTokens[this.tokenOffset];
+      }
+    }
+
+    public bool CanSeek
+    {
+      get
+      {
+        return false;
+      }
+    }
+
+    public Token this[int offset]
+    {
+      get
+      {
+        return this.AtOffset(offset);
+      }
+    }
+
+    public TokenScanner(IPositionableInputStream input)
+    {
+      this.input = input;
+      this.readTokens = new List<Token>(4096);
+      this.tokenOffset = -1;
+      this.IsAtEnd = false;
+    }
+
+    public Token AtOffset(int offset)
+    {
+      return this.readTokens[offset];
+    }
+
+    public bool MoveNext()
+    {
+      if (this.IsAtEnd)
+        return false;
+      ++this.tokenOffset;
+      while (this.tokenOffset >= this.readTokens.Count)
+      {
+        string line = this.input.ReadLine();
+        if (line != null)
+          this.readTokens.AddRange(Tokeniser.TokeniseLine(line, this.input.CurrentFile, this.input.LineNumber));
+        else
+          break;
+      }
+      this.IsAtEnd = this.tokenOffset >= this.readTokens.Count;
+      return !this.IsAtEnd;
+    }
+  }
 }

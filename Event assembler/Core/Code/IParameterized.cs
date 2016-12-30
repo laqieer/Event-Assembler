@@ -1,21 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.IParameterized
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
 
 namespace Nintenlord.Event_Assembler.Core.Code
 {
-    /// <summary>
-    /// A code that can take a certain amount of parameters. 
-    /// </summary>
-    public interface IParameterized //Think a better name for this.
-    {
-        /// <summary>
-        /// Minimun amount of parameters accepted or -1 if no minimun exists.
-        /// </summary>
-        int MinAmountOfParameters { get; }
-        /// <summary>
-        /// Maximun amount of parameters accepted or -1 if no maximun exists.
-        /// </summary>
-        int MaxAmountOfParameters { get; }
-    }
+  public interface IParameterized
+  {
+    int MinAmountOfParameters { get; }
+
+    int MaxAmountOfParameters { get; }
+  }
 }

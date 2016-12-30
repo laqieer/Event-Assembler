@@ -1,97 +1,38 @@
-﻿using System;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.Templates.ICodeTemplate
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Event_Assembler.Core.Code.Language.Expression;
 using Nintenlord.Utility;
-using EAType = Nintenlord.Event_Assembler.Core.Code.Language.Types.Type;
-using Nintenlord.Event_Assembler.Core.Code.Language.Types.IntegerRepresentations;
-using Nintenlord.Event_Assembler.Core.IO.Input;
+using System;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Templates
 {
-    /// <summary>
-    /// Template for assembly code
-    /// </summary>
-    public interface ICodeTemplate : INamed<string>, IParameterized
-    {
-        /// <summary>
-        /// Max repetition of this template as parameters
-        /// </summary>
-        int MaxRepetition { get; }
-        /// <summary>
-        /// If this template should end disassembling 
-        /// </summary>
-        bool EndingCode { get; }
-        /// <summary>
-        /// The modulus where the offset of this template should be 0
-        /// </summary>
-        int OffsetMod { get; }
-        /// <summary>
-        /// Amount of fixed code in this template.
-        /// </summary>
-        int AmountOfFixedCode { get; }
+  public interface ICodeTemplate : INamed<string>, IParameterized
+  {
+    int MaxRepetition { get; }
 
-        /// <summary>
-        /// Checks if code split to parameters matches this template
-        /// </summary>
-        /// <param name="parameterTypes">Code split to parameters.</param>
-        /// <returns>True if code fits this template, else false</returns>
-        /// <exception cref="NullReferanceException">If code is null or any of items in code are null.</exception>
-        bool Matches(EAType[] parameterTypes);
-        /// <summary>
-        /// Gets the length of code that matches this template in bytes
-        /// </summary>
-        /// <param name="parameters">Code whose lenght to match</param>
-        /// <returns>Lenght of the code in bytes</returns>
-        int GetLengthBytes<T>(IExpression<T>[] parameters);
-        /// <summary>
-        /// Gets the binary data of code
-        /// </summary>
-        /// <param name="parameters">Code that matches this template</param>
-        /// <param name="messageHandler">Message handling class</param>
-        /// <returns>Binary data of the code</returns>
-        CanCauseError<byte[]> GetData<T>(IExpression<T>[] parameters, Func<string, CanCauseError<T>> getSymbolValue, IIntegerType<T> intType, IPointerMaker<T> pointerMaker);
+    bool EndingCode { get; }
 
-        /// <summary>
-        /// Checks if binary data matches the
-        /// </summary>
-        /// <param name="data">Binary data</param>
-        /// <param name="offset">Position on the data to match</param>
-        /// <returns>True if data at offset matches this template, else false</returns>
-        /// <exception cref="IndexOutOfRange">If offset is smaller than 0 or larger or equal than data.Lenght</exception>
-        bool Matches(byte[] data, int offset);
-        /// <summary>
-        /// Gets the length of binary data that matches this template in bytes
-        /// </summary>
-        /// <param name="code">Binary data</param>
-        /// <param name="offset">Position on the data to match</param>
-        /// <returns>Lenght of the code in bytes</returns>
-        /// <exception cref="IndexOutOfRange">If offset is smaller than 0 or larger or equal than data.Lenght</exception>
-        int GetLengthBytes(byte[] data, int offset);
-        /// <summary>
-        /// Gets the assembly code of the binary data matching this template
-        /// </summary>
-        /// <param name="code">Binary data</param>
-        /// <param name="offset">Position of the code on the data</param>
-        /// <param name="messageHandler">Message handling class</param>
-        /// <returns>Assembly code matching the binary data</returns>
-        /// <exception cref="IndexOutOfRange">If offset is smaller than 0 or larger or equal than data.Lenght</exception>
-        CanCauseError<string[]> GetAssembly<T>(byte[] data, int offset, IIntegerType<T> intType, IPointerMaker<T> pointerMaker);
+    int OffsetMod { get; }
 
+    int AmountOfFixedCode { get; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <remarks>Shouldn't advance the stream.</remarks>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        bool Matches(IInputByteStream stream);
-        /// <summary>
-        /// Gets the assembly code of the binary data matching this template
-        /// </summary>
-        /// <param name="code">Binary data</param>
-        /// <param name="offset">Position of the code on the data</param>
-        /// <param name="messageHandler">Message handling class</param>
-        /// <returns>Assembly code matching the binary data</returns>
-        /// <exception cref="IndexOutOfRange">If offset is smaller than 0 or larger or equal than data.Lenght</exception>
-        CanCauseError<string[]> GetAssembly<T>(IInputByteStream stream, IIntegerType<T> intType, IPointerMaker<T> pointerMaker);
+    int ID { get; }
+        
+    bool Matches(Language.Types.Type[] parameterTypes);
+
+    int GetLengthBytes(IExpression<int>[] parameters);
+
+    CanCauseError<byte[]> GetData(IExpression<int>[] parameters, Func<string, int?> getSymbolValue);
+
+    bool Matches(byte[] data, int offset);
+
+    int GetLengthBytes(byte[] data, int offset);
+
+    CanCauseError<string[]> GetAssembly(byte[] data, int offset);
+    ICodeTemplate CopyWithNewName(string name);
     }
 }

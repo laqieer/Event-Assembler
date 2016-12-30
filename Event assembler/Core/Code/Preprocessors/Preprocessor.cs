@@ -1,6 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.Preprocessors.Preprocessor
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros;
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives;
@@ -8,298 +11,254 @@ using Nintenlord.Event_Assembler.Core.Collections;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.Utility;
-using Nintenlord.Utility.Strings;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
 {
-    public sealed class Preprocessor : IDirectivePreprocessor
+  public class Preprocessor : IDirectivePreprocessor, IPreprocessor, IDisposable
+  {
+    private const bool includedFilesAsNewScope = true;
+    private Stack<bool> include;
+    private IDefineCollection defCol;
+    private Pool pool;
+    private List<string> predefined;
+    private List<string> reserved;
+    private CurrentLine curLine;
+    private CurrentFile curFile;
+    private Dictionary<string, IDirective> directives;
+    private ILog messageLog;
+    private IInputStream inputStream;
+    private int blockCommentDepth;
+
+    public ILog Log
     {
-        readonly Stack<bool> include;
-        readonly IDefineCollection defCol;
-        readonly Pool pool;
-
-        readonly List<string> predefined;
-        readonly List<string> reserved;
-        readonly CurrentLine curLine;
-        readonly CurrentFile curFile;
-        readonly Dictionary<string, IDirective> directives;
-
-        readonly ILog messageLog;
-        IInputStream inputStream;
-        int blockCommentDepth;
-
-        const bool includedFilesAsNewScope = true;
-
-        public Preprocessor(ILog messageLog)
-        {
-            this.messageLog = messageLog;
-            this.predefined = new List<string>();
-            this.reserved = new List<string>();
-            this.pool = new Pool();
-            this.curLine = new CurrentLine();
-            this.curFile = new CurrentFile();
-            this.blockCommentDepth = 0;
-
-            var defColOpt = new DefineCollectionOptimized();
-            defColOpt["IsDefined"] = new IsDefined(defColOpt);
-            defColOpt["DeconstVector"] = new DeconstructVector();
-            defColOpt["ConstVector"] = new BuildVector();
-            defColOpt["ToParameters"] = new VectorToParameter();
-            defColOpt["Signum"] = new Signum();
-            defColOpt["Switch"] = new Switch();
-            defColOpt["String"] = new InsertText();
-            defColOpt["AddToPool"] = pool;
-            defColOpt["_line_"] = curLine;
-            defColOpt["_file_"] = curFile;
-            defCol = defColOpt;
-
-            this.include = new Stack<bool>();
-            this.include.Push(true);
-
-            directives = (new IDirective[] { 
-                new IfDefined(),
-                new IfNotDefined(),
-                new Define(),
-                new DumpPool(),
-                new Else(),
-                new EndIf(),
-                new Include(),
-                new IncludeBinary(),
-                new Undefine()
-            }).GetDictionary<string, IDirective>();
-        }
-
-        #region IPreprocessor Members
-
-        public void AddDefined(IEnumerable<string> original)
-        {
-            predefined.AddRange(original);
-        }
-
-        public void AddReserved(IEnumerable<string> reserved)
-        {
-            this.reserved.AddRange(reserved);
-        }
-
-        public string Process(string line, IInputStream inputStream)
-        {
-            curLine.Stream = inputStream;
-            curFile.Stream = inputStream;
-            this.inputStream = inputStream;
-
-            StringBuilder lineModific = new StringBuilder(line);
-
-            if (!Nintenlord.Utility.Strings.Parser.ReplaceCommentsWith(lineModific, ' ', ref blockCommentDepth))
-            {
-                messageLog.AddError(inputStream.GetErrorString("Error removing comments"));
-            }
-            line = lineModific.ToString();
-
-            if (line.FirstNonWhiteSpaceIs('#'))
-            {
-                HandleDirective(line);
-                return "";
-            }
-            else
-            {
-                if (include.And())
-                {
-                    var newResult = defCol.ApplyDefines(line);
-
-                    if (!newResult.CausedError)
-                    {
-                        string newLine = newResult.Result; 
-                        foreach (var item in predefined)
-                        {
-                            newLine = newLine.Replace(item, " ");
-                        }
-                        if (defCol.ContainsName("USING_CODE"))
-                        {
-                            newLine = HandleCODE(newLine);
-                        }
-
-                        return newLine;
-                    }
-                    else
-                    {
-                        messageLog.AddError(inputStream.GetErrorString(newResult.ErrorMessage));
-                        return line;
-                    }
-                }
-                else
-                {
-                    return "";
-                }
-            }
-        }
-
-        public static string HandleCODE(string newLine)
-        {
-            var index = newLine.IndexOf("CODE");
-
-            if (index >= 0)
-            {
-                var parameters = newLine.Remove(index, 4).Split(' ');
-
-                StringBuilder bldr = new StringBuilder();
-                bool lastWasWord = false;
-                bool lastWasByte = false;
-                foreach (var parameter in parameters)
-                {
-                    bool currentIsByte = parameter.StartsWith("0x");
-                    if (lastWasByte)
-                    {
-                        if (!currentIsByte)
-                        {
-                            bldr.Append("; WORD ");
-                        }
-                    }
-                    else if (lastWasWord)
-                    {
-                        if (currentIsByte)
-                        {
-                            bldr.Append("; BYTE ");
-                        }
-                    }
-                    else //Only at the start of code
-                    {
-                        if (currentIsByte)
-                        {
-                            bldr.Append("BYTE ");
-                        }
-                        else
-                        {
-                            bldr.Append("WORD ");
-                        }
-                    }
-                    bldr.Append(parameter);
-                    bldr.Append(' ');
-
-                    //End
-                    lastWasByte = currentIsByte;
-                    lastWasWord = !currentIsByte;
-                }
-
-                return bldr.ToString();
-            }
-            else return newLine;
-        }
-        
-        #endregion
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            if (pool.AmountOfLines > 0)
-            {
-                messageLog.AddWarning("Pool contains undumped lines at the end");
-            }
-            if (include.Count > 1)
-            {
-                messageLog.AddWarning("#ifdef's are missing at the end");
-            }
-
-        }
-
-        #endregion
-        
-        #region IDirectivePreprocessor Members
-
-        public Stack<bool> Include
-        {
-            get { return include; }
-        }
-
-        public IDefineCollection DefCol
-        {
-            get { return defCol; }
-        }
-
-        public Pool Pool
-        {
-            get { return pool; }
-        }
-
-        public IInputStream Input
-        {
-            get
-            {
-                return inputStream;
-            }
-        }
-
-
-        public bool IsValidToDefine(string name)
-        {
-            return reserved.Contains(name) || predefined.Contains(name);
-        }
-
-        public void IncludeFile(string file)
-        {
-            inputStream.OpenSourceFile(file);
-        }
-
-        public void IncludeBinary(string file)
-        {
-            inputStream.OpenBinaryFile(file);
-        }
-        
-        public bool IsPredefined(string name)
-        {
-            return predefined.Contains(name);
-        }
-        #endregion
-        
-        private void HandleDirective(string line)
-        {
-            string[] elements = Nintenlord.Utility.Strings.Parser.SplitToParameters(line);
-
-            string directiveName;
-            int parameterAmount;
-            if (elements[0].Equals("#"))
-            {
-                directiveName = elements[1];
-                parameterAmount = elements.Length - 2;
-            }
-            else
-            {
-                directiveName = elements[0].TrimStart('#');
-                parameterAmount = elements.Length - 1;
-            }
-            string[] parameters = new string[parameterAmount];
-            Array.Copy(elements, elements.Length - parameterAmount, parameters, 0, parameterAmount);
-
-            IDirective directive;
-            if (directives.TryGetValue(directiveName, out directive))
-            {
-                var error = directive.Matches("Directive " + directiveName, parameterAmount);
-                if (!error)
-                {
-                    if (directive.RequireIncluding)
-                    {
-                        if (this.include.And())
-                        {
-                            var causedError = directive.Apply(parameters, this);
-                            if (causedError)
-                                messageLog.AddError(inputStream.GetErrorString(causedError));
-                        }
-                    }
-                    else
-                    {
-                        var causedError = directive.Apply(parameters, this);
-                        if (causedError)
-                            messageLog.AddError(inputStream.GetErrorString(causedError));
-                    }
-                }
-                else messageLog.AddError(inputStream.GetErrorString(error));
-            }
-            else
-            {
-                messageLog.AddError(inputStream.GetErrorString(
-                    ": No directive with the name #" + directiveName + " exists"));
-            }
-        }
-
+        get { return messageLog; }
     }
+    public Stack<bool> Include
+    {
+      get
+      {
+        return this.include;
+      }
+    }
+
+    public IDefineCollection DefCol
+    {
+      get
+      {
+        return this.defCol;
+      }
+    }
+
+    public Pool Pool
+    {
+      get
+      {
+        return this.pool;
+      }
+    }
+
+    public IInputStream Input
+    {
+      get
+      {
+        return this.inputStream;
+      }
+    }
+
+    public Preprocessor(ILog messageLog)
+    {
+      this.messageLog = messageLog;
+      this.predefined = new List<string>();
+      this.reserved = new List<string>();
+      this.pool = new Pool();
+      this.curLine = new CurrentLine();
+      this.curFile = new CurrentFile();
+      this.blockCommentDepth = 0;
+      DefineCollectionOptimized collectionOptimized = new DefineCollectionOptimized();
+      collectionOptimized["IsDefined"] = (IMacro) new IsDefined((IDefineCollection) collectionOptimized);
+      collectionOptimized["DeconstVector"] = (IMacro) new DeconstructVector();
+      collectionOptimized["ConstVector"] = (IMacro) new BuildVector();
+      collectionOptimized["ToParameters"] = (IMacro) new VectorToParameter();
+      collectionOptimized["Signum"] = (IMacro) new Signum();
+      collectionOptimized["Switch"] = (IMacro) new Switch();
+      collectionOptimized["String"] = (IMacro) new InsertText();
+      collectionOptimized["AddToPool"] = (IMacro) this.pool;
+      collectionOptimized["_line_"] = (IMacro) this.curLine;
+      collectionOptimized["_file_"] = (IMacro) this.curFile;
+      this.defCol = (IDefineCollection) collectionOptimized;
+      this.include = new Stack<bool>();
+      this.include.Push(true);
+      this.directives = ((IEnumerable<IDirective>)new IDirective[13]
+      {
+        (IDirective) new IfDefined(),
+        (IDirective) new IfNotDefined(),
+        (IDirective) new Define(),
+        (IDirective) new DumpPool(),
+        (IDirective) new Else(),
+        (IDirective) new EndIf(),
+        (IDirective) new Include(),
+        (IDirective) new IncludeBinary(),
+        (IDirective) new Undefine(),
+        (IDirective) new IncludeTextExternal(),
+        (IDirective) new IncludeExternal(),
+        (IDirective) new RunExternal(),
+        (IDirective) new EasterEgg()
+      }).GetDictionary<string, IDirective>();
+    }
+
+    public void AddDefined(IEnumerable<string> original)
+    {
+      this.predefined.AddRange(original);
+    }
+
+    public void AddReserved(IEnumerable<string> reserved)
+    {
+      this.reserved.AddRange(reserved);
+    }
+
+    public string Process(string line, IInputStream inputStream)
+    {
+      this.curLine.Stream = inputStream;
+      this.curFile.Stream = inputStream;
+      this.inputStream = inputStream;
+      StringBuilder line1 = new StringBuilder(line);
+      if (!Nintenlord.Utility.Parser.ReplaceCommentsWith(line1, ' ', ref this.blockCommentDepth))
+        this.messageLog.AddError(inputStream.GetErrorString("Error removing comments"));
+      line = line1.ToString();
+      if (line.FirstNonWhiteSpaceIs('#'))
+      {
+        this.HandleDirective(line);
+        return "";
+      }
+      if (!this.include.And())
+        return "";
+      CanCauseError<string> canCauseError = this.defCol.ApplyDefines(line);
+      if (!canCauseError.CausedError)
+      {
+        string newLine = canCauseError.Result;
+        foreach (string oldValue in this.predefined)
+          newLine = newLine.Replace(oldValue, " ");
+        if (this.defCol.ContainsName("USING_CODE"))
+          newLine = Preprocessor.HandleCODE(newLine);
+        return newLine;
+      }
+      this.messageLog.AddError(inputStream.GetErrorString(canCauseError.ErrorMessage));
+      return line;
+    }
+
+    public static string HandleCODE(string newLine)
+    {
+      int startIndex = newLine.IndexOf("CODE");
+      if (startIndex < 0)
+        return newLine;
+      string[] strArray = newLine.Remove(startIndex, 4).Split(' ');
+      StringBuilder stringBuilder = new StringBuilder();
+      bool flag1 = false;
+      bool flag2 = false;
+      foreach (string str in strArray)
+      {
+        bool flag3 = str.StartsWith("0x");
+        if (flag2)
+        {
+          if (!flag3)
+            stringBuilder.Append("; WORD ");
+        }
+        else if (flag1)
+        {
+          if (flag3)
+            stringBuilder.Append("; BYTE ");
+        }
+        else if (flag3)
+          stringBuilder.Append("BYTE ");
+        else
+          stringBuilder.Append("WORD ");
+        stringBuilder.Append(str);
+        stringBuilder.Append(' ');
+        flag2 = flag3;
+        flag1 = !flag3;
+      }
+      return stringBuilder.ToString();
+    }
+
+    public void Dispose()
+    {
+      if (this.pool.AmountOfLines > 0)
+        this.messageLog.AddWarning("Pool contains undumped lines at the end");
+      if (this.include.Count <= 1)
+        return;
+      this.messageLog.AddWarning("#ifdef's are missing at the end");
+    }
+
+    public bool IsValidToDefine(string name)
+    {
+      if (!this.reserved.Contains(name))
+        return this.predefined.Contains(name);
+      return true;
+    }
+
+    public void IncludeFile(string file)
+    {
+      this.inputStream.OpenSourceFile(file);
+    }
+
+    public void IncludeBinary(string file)
+    {
+      this.inputStream.OpenBinaryFile(file);
+    }
+
+    public bool IsPredefined(string name)
+    {
+      return this.predefined.Contains(name);
+    }
+
+    private void HandleDirective(string line)
+    {
+      string[] parameters1 = Crazycolorz5.Parser.SplitToParameters(line);
+      string key;
+      int length;
+      if (parameters1[0].Equals("#"))
+      {
+        key = parameters1[1];
+        length = parameters1.Length - 2;
+      }
+      else
+      {
+        key = parameters1[0].TrimStart('#');
+        length = parameters1.Length - 1;
+      }
+      string[] parameters2 = new string[length];
+      Array.Copy((Array) parameters1, parameters1.Length - length, (Array) parameters2, 0, length);
+      IDirective parameterized;
+      if (this.directives.TryGetValue(key, out parameterized))
+      {
+        string error1;
+        if (parameterized.Matches("Directive " + key, length, out error1))
+        {
+          if (parameterized.RequireIncluding)
+          {
+            if (!this.include.And())
+              return;
+            CanCauseError error2 = parameterized.Apply(parameters2, (IDirectivePreprocessor) this);
+            if (!(bool) error2)
+              return;
+            this.messageLog.AddError(this.inputStream.GetErrorString(error2));
+          }
+          else
+          {
+            CanCauseError error2 = parameterized.Apply(parameters2, (IDirectivePreprocessor) this);
+            if (!(bool) error2)
+              return;
+            this.messageLog.AddError(this.inputStream.GetErrorString(error2));
+          }
+        }
+        else
+          this.messageLog.AddError(this.inputStream.GetErrorString(error1));
+      }
+      else
+        this.messageLog.AddError(this.inputStream.GetErrorString(": No directive with the name #" + key + " exists"));
+    }
+  }
 }

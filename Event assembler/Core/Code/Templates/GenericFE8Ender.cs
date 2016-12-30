@@ -1,106 +1,103 @@
-﻿using System;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.Templates.GenericFE8Ender
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
+
 using Nintenlord.Event_Assembler.Core.Code.Language.Expression;
 using Nintenlord.Utility;
-using Nintenlord.Event_Assembler.Core.Code.Language.Types.IntegerRepresentations;
+using System;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Templates
 {
-    public class GenericFE8Ender : ICodeTemplate
+  public class GenericFE8Ender : ICodeTemplate, INamed<string>, IParameterized
+  {
+        public int ID { get { return 0; } }
+        public ICodeTemplate CopyWithNewName(string s) { return new GenericFE8Ender(); }
+    public int MaxRepetition
     {
-        #region ICodeTemplate Members
-
-        public int MaxRepetition
-        {
-            get { return 1; }
-        }
-
-        public bool EndingCode
-        {
-            get { return true; }
-        }
-
-        public int OffsetMod
-        {
-            get { return 2; }
-        }
-
-        public int AmountOfFixedCode
-        {
-            get { return 0; }
-        }
-
-
-
-        public bool Matches(byte[] data, int offset)
-        {
-            return data[offset + 1] == 0x1;
-        }
-
-        public int GetLengthBytes(byte[] data, int offset)
-        {
-            return (data[offset] >> 4) * 2;
-        }
-
-        public CanCauseError<string[]> GetAssembly<T>(byte[] data, int offset, IIntegerType<T> intType, IPointerMaker<T> pointerMaker)
-        {
-            return new string[] { this.Name };
-        }
-        
-        
-        public bool Matches(Language.Types.Type[] code)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int GetLengthBytes<T>(IExpression<T>[] code)
-        {
-            throw new NotImplementedException();
-        }
-
-        public CanCauseError<byte[]> GetData<T>(IExpression<T>[] code, Func<string, CanCauseError<T>> getSymbolValue, IIntegerType<T> intType, IPointerMaker<T> pointerMaker)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
-        #region INamed<string> Members
-
-        public string Name
-        {
-            get { return "FE8End"; }
-        }
-
-        #endregion
-
-        #region IParameterized Members
-
-        public int MinAmountOfParameters
-        {
-            get { return 0; }
-        }
-
-        public int MaxAmountOfParameters
-        {
-            get { return 0; }
-        }
-
-        #endregion
-
-
-        public bool Matches(IO.Input.IInputByteStream stream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int GetLengthBytes(IO.Input.IInputByteStream stream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public CanCauseError<string[]> GetAssembly<T>(IO.Input.IInputByteStream stream, IIntegerType<T> intType, IPointerMaker<T> pointerMaker)
-        {
-            throw new NotImplementedException();
-        }
+      get
+      {
+        return 1;
+      }
     }
+
+    public bool EndingCode
+    {
+      get
+      {
+        return true;
+      }
+    }
+
+    public int OffsetMod
+    {
+      get
+      {
+        return 2;
+      }
+    }
+
+    public int AmountOfFixedCode
+    {
+      get
+      {
+        return 0;
+      }
+    }
+
+    public string Name
+    {
+      get
+      {
+        return "FE8End";
+      }
+    }
+
+    public int MinAmountOfParameters
+    {
+      get
+      {
+        return 0;
+      }
+    }
+
+    public int MaxAmountOfParameters
+    {
+      get
+      {
+        return 0;
+      }
+    }
+
+    public bool Matches(byte[] data, int offset)
+    {
+      return (int) data[offset + 1] == 1;
+    }
+
+    public int GetLengthBytes(byte[] data, int offset)
+    {
+      return ((int) data[offset] >> 4) * 2;
+    }
+
+    public CanCauseError<string[]> GetAssembly(byte[] data, int offset)
+    {
+      return (CanCauseError<string[]>) new string[1]{ this.Name };
+    }
+
+    public bool Matches(Language.Types.Type[] code)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int GetLengthBytes(IExpression<int>[] code)
+    {
+      throw new NotImplementedException();
+    }
+
+    public CanCauseError<byte[]> GetData(IExpression<int>[] code, Func<string, int?> getSymbolValue)
+    {
+      throw new NotImplementedException();
+    }
+  }
 }

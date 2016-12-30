@@ -1,49 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Nintenlord.Event_Assembler.Core.Collections;
-using Nintenlord.Utility;
-using Nintenlord.Utility.Strings;
+﻿// Decompiled with JetBrains decompiler
+// Type: Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros.Switch
+// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
+// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
+// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
 
+using Nintenlord.Utility;
+using System;
+using System.Runtime.InteropServices;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
 {
-    public struct Switch : IMacro
+  [StructLayout(LayoutKind.Sequential, Size = 1)]
+  public struct Switch : IMacro, IEquatable<IMacro>
+  {
+    public bool IsCorrectAmountOfParameters(int amount)
     {
-        #region IReplacer Members
-
-        public bool IsCorrectAmountOfParameters(int amount)
-        {
-            return amount > 1;
-        }
-
-        public string Replace(string[] parameters)
-        {
-            int value;
-            if (parameters[0].GetMathStringValue(out value))
-            {
-                if (value < parameters.Length && value != 0)
-                {
-                    return parameters[value];
-                }
-                else
-                {
-                    return "";
-                }
-            }
-            else return "";//Raise error
-        }
-
-        #endregion
-
-        #region IEquatable<IReplacer> Members
-
-        public bool Equals(IMacro other)
-        {
-            return other.GetType() == typeof(Switch);
-        }
-
-        #endregion
+      return amount > 1;
     }
+
+    public string Replace(string[] parameters)
+    {
+      int result;
+      if (parameters[0].GetMathStringValue(out result) && result < parameters.Length && result != 0)
+        return parameters[result];
+      return "";
+    }
+
+    public bool Equals(IMacro other)
+    {
+      return other.GetType() == typeof (Switch);
+    }
+  }
 }
