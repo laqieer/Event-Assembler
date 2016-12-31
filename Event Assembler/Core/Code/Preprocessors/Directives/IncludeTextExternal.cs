@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
 {
-    internal class IncludeTextExternal : IDirective, INamed<string>, IParameterized
+    internal class IncludeToolEvent : IDirective, INamed<string>, IParameterized
     {
 
         //Nintenlord.Event_Assembler.Core.IO.IOHelpers.FindFile
@@ -15,7 +15,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
         {
             get
             {
-                return "inctext";
+                return "inctevent";
             }
         }
 

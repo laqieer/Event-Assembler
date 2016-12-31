@@ -61,7 +61,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
           host.Input.AddNewLine("MESSAGE The proyect is dead? Reply soon. :)");
           break;
         case "incest":
-          host.Input.AddNewLine("MESAGE incext? Are you sure you didn't mean incest?");
+          host.Input.AddNewLine("MESSAGE incext? Are you sure you didn't mean incest?");
+          break;
+        case "proyect":
+          host.Input.AddNewLine("MESSAGE soon");
           break;
         default:
           break;

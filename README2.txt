@@ -69,8 +69,11 @@ V 10.1
 V 10.2
 -Added POIN2; it's just POIN but doesn't require word-alignment.
 -Fixed Hack Installation/setPointerTableEntry
--Added #inctext for programs that output event code, rather than just binary.
+-Added #inctevent ("Include Tool Event") for programs that output event code, rather than just binary.
 -Fixed bug where Core would hang if it got an invalid input file.
+-Added ASSERT (int) for conditions. Errors if the condition is negative.
+ -In the future might change it to be non-positive?
+-Added PROTECT (startOffset) (endOffset) to prevent regions from being carelessly overwritten.
 
 -------------------
 Additional Credits:

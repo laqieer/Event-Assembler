@@ -102,7 +102,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
         (IDirective) new Include(),
         (IDirective) new IncludeBinary(),
         (IDirective) new Undefine(),
-        (IDirective) new IncludeTextExternal(),
+        (IDirective) new IncludeToolEvent(),
         (IDirective) new IncludeExternal(),
         (IDirective) new RunExternal(),
         (IDirective) new EasterEgg()
