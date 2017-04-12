@@ -70,6 +70,7 @@ V 11.0
 -Added POIN2; it's just POIN but doesn't require word-alignment.
 -Fixed Hack Installation/setPointerTableEntry
 -Added #inctevent for programs that output event code, rather than just binary.
+ -Aliased as #inctext for backwards compatability with V10.1.1
 -Fixed bug where Core would hang if it got an invalid input file.
 -Added PROTECT (start) (end) to make a region write-protected.
 -Made Event assembler.exe look for .event files by default (over .txt)
