@@ -26,6 +26,8 @@ namespace Nintenlord.Event_Assembler.Core.Collections
 
     CanCauseError<string> ApplyDefines(string original);
 
+    CanCauseError<string> ApplyPreprocessorDefines(string original);
+
     bool IsValidName(string name);
   }
 }

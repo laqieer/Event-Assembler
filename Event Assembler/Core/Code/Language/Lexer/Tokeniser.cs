@@ -29,6 +29,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Lexer
       Tokeniser.tokenRegexs[TokenType.RightSquareBracket] = "\\]";
       Tokeniser.tokenRegexs[TokenType.LeftCurlyBracket] = "\\{";
       Tokeniser.tokenRegexs[TokenType.RightCurlyBracket] = "\\}";
+      Tokeniser.tokenRegexs[TokenType.StringLiteral] = "\\\".*\\\"";
       Tokeniser.tokenRegexs[TokenType.Comma] = ",";
       Tokeniser.tokenRegexs[TokenType.Equal] = "=";
       Tokeniser.tokenRegexs[TokenType.Colon] = ":";

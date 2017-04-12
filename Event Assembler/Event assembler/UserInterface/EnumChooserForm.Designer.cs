@@ -31,7 +31,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.enumChooser1 = new Nintenlord.Event_Assembler.UserInterface.EnumChooser();
+            this.enumChooser1 = new EnumChooser();
             this.SuspendLayout();
             // 
             // label1
@@ -67,7 +67,7 @@
             // 
             // enumChooser1
             // 
-            this.enumChooser1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.enumChooser1.Anchor = ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)));
             this.enumChooser1.AutoSize = true;
             this.enumChooser1.Location = new System.Drawing.Point(12, 30);

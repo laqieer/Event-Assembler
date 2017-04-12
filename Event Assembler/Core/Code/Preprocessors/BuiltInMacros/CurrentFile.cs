@@ -20,7 +20,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
 
     public string Replace(string[] parameters)
     {
-      return this.Stream.CurrentFile;
+      return '"' + this.Stream.CurrentFile + '"';
     }
 
     public bool Equals(IMacro other)

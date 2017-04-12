@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows.Forms;
 using Nintenlord.Event_Assembler.Core;
 using Nintenlord.Event_Assembler.Core.Code.Language;
-using Nintenlord.Event_Assembler.Core.Code.Language.Old;
 using Nintenlord.Utility;
 using Core = Nintenlord.Event_Assembler.Core;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
@@ -13,6 +12,7 @@ namespace Nintenlord.Event_Assembler.UserInterface
     public partial class MainForm : Form
     {
         String textFile, binaryFile;
+        StringWriter lastMessages;
         
         public MainForm()
         {
@@ -33,7 +33,8 @@ namespace Nintenlord.Event_Assembler.UserInterface
             this.assemblyBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(
                 (sender, args) =>
                 {
-                    var messageLog = new MessageLog();
+                    lastMessages = new StringWriter();
+                    var messageLog = new TextWriterMessageLog(lastMessages);
                     var tuple = args.Argument as Tuple<string, string, string>;
 #if DEBUG
                     try
@@ -56,7 +57,8 @@ namespace Nintenlord.Event_Assembler.UserInterface
             this.disassemblyBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(
                 (sender, args) =>
                 {
-                    var messageLog = new MessageLog();
+                    lastMessages = new StringWriter();
+                    var messageLog = new TextWriterMessageLog(lastMessages);
                     var tuple = args.Argument as Tuple<string, string, string, int, int, DisassemblyMode, bool>;
 
                     Priority priority;
@@ -88,11 +90,8 @@ namespace Nintenlord.Event_Assembler.UserInterface
         public void PrintAll(MessageLog messageLog)
         {
             string message;
-            using (StringWriter writer = new StringWriter())
-            {
-                messageLog.WriteToStream(writer);
-                message = writer.ToString();
-            }
+                messageLog.PrintAll();
+            message = lastMessages.ToString();
 
             using (TextShower shower = new TextShower(message))
             {
@@ -106,7 +105,8 @@ namespace Nintenlord.Event_Assembler.UserInterface
         {
             if (e.Control && e.Alt && (e.KeyCode == Keys.P))
             {
-                var messageLog = new MessageLog();
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
 
                 Core.Program.Preprocess(textFile, binaryFile, GetChosenGame(), messageLog);
 
@@ -135,7 +135,7 @@ namespace Nintenlord.Event_Assembler.UserInterface
             using (OpenFileDialog openDialog = new OpenFileDialog())
             {
                 openDialog.Title = "Open text file...";
-                openDialog.Filter = "Text files|*.txt|All files|*";
+                openDialog.Filter = "Event files|*.event|Text files|*.txt|All files|*";
                 if (textFile != null)
                 {
                     openDialog.InitialDirectory = Path.GetDirectoryName(textFile);
@@ -191,7 +191,8 @@ namespace Nintenlord.Event_Assembler.UserInterface
             else
             {
 #if DEBUG
-                var messageLog = new MessageLog();
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
                 Core.Program.Assemble(textFile, binaryFile, game, messageLog);
                 PrintAll(messageLog);
 #else
@@ -219,7 +220,8 @@ namespace Nintenlord.Event_Assembler.UserInterface
             else
             {
 #if DEBUG
-                var messageLog = new MessageLog();
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
 
                 Priority priority;
                 if (mode == DisassemblyMode.Block || mode == DisassemblyMode.ToEnd)

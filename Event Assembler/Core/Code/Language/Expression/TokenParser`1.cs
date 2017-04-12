@@ -19,12 +19,12 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Expression
 
     public TokenParser(Func<string, T> eval)
     {
-      this.mainParser = (IParser<Token, IExpression<T>>) new ScopeParser<T>((IParser<Token, IEnumerable<IExpression<T>>>) Parsers.GetStatementParser<T>(eval).Many<Token, IExpression<T>>(), (IParser<Token, Token>) TokenTypeParser.GetTypeParser(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.LeftCurlyBracket), (IParser<Token, Token>) TokenTypeParser.GetTypeParser(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.RightCurlyBracket)).Transform<Token, Scope<T>, IExpression<T>>((Converter<Scope<T>, IExpression<T>>) (x => (IExpression<T>) x));
+         mainParser = new ScopeParser<T>(Parsers.GetStatementParser(eval).Many(), TokenTypeParser.GetTypeParser(TokenType.LeftCurlyBracket), TokenTypeParser.GetTypeParser(TokenType.RightCurlyBracket)).Transform(x => (IExpression<T>)x);
     }
 
     private void parseEvent<T1, T2>(object sender, ParsingEventArgs<T1, T2> e)
     {
-      Console.WriteLine("Parser {0}, matched {1}", sender, (object) e.Match);
+      Console.WriteLine("Parser {0}, matched {1}", sender, e.Match);
     }
 
     protected override IExpression<T> ParseMain(IScanner<Token> scanner, out Match<Token> match)

@@ -45,12 +45,13 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
 
         public CanCauseError Apply(string[] parameters, IDirectivePreprocessor host)
         {
+            /*
             for (int i=1; i<parameters.Length; i++)
             {
                 CanCauseError<string> res = host.DefCol.ApplyDefines(parameters[i]);
                 if (!res.CausedError)
                     parameters[i] = res.Result;
-            }
+            }*/
             string file = IO.IOHelpers.FindFile(host.Input.CurrentFile, getFileName(parameters[0]));
             if (file.Length <= 0)
                 return CanCauseError.Error("Tool " + parameters[0] + " not found.");

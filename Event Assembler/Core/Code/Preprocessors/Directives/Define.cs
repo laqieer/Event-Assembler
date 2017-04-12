@@ -68,7 +68,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
         string name;
         if (length != -1 && num != -1 && length < num)
         {
-          strArray = parameters[0].Substring(length + 1, num - length - 1).Split((ICollection<char>) Define.macroSeparators, Define.uniters);
+          strArray = parameters[0].Substring(length + 1, num - length - 1).Split(macroSeparators, uniters);
           name = parameters[0].Substring(0, length);
         }
         else

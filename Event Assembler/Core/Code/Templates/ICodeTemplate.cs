@@ -21,7 +21,11 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     int AmountOfFixedCode { get; }
 
     int ID { get; }
-        
+
+    bool CanBeDisassembled { get; set; }
+
+    bool CanBeAssembled { get; }
+
     bool Matches(Language.Types.Type[] parameterTypes);
 
     int GetLengthBytes(IExpression<int>[] parameters);

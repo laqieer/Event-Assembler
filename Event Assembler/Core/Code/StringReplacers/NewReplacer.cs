@@ -93,9 +93,15 @@ namespace Nintenlord.Event_Assembler.Core.Code.StringReplacers
       SortedDictionary<int, Tuple<int, IMacro, string[]>> replace = new SortedDictionary<int, Tuple<int, IMacro, string[]>>((IComparer<int>) ReverseComparer<int>.Default);
       StringBuilder stringBuilder = new StringBuilder();
       int i = 0;
+      bool inQuotes = false;
       while (i < s.Length)
       {
-        if (DefineCollectionOptimized.IsValidCharacter(s[i]))
+        if(s[i] == '"')
+        {
+            inQuotes = !inQuotes;
+            ++i;
+        }
+        else if (inQuotes || DefineCollectionOptimized.IsValidCharacter(s[i]))
         {
           stringBuilder.Append(s[i]);
           ++i;

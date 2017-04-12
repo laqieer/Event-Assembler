@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //[assembly: Extension]
-[assembly: AssemblyFileVersion("10.1.1")]
+[assembly: AssemblyFileVersion("11.0")]
 [assembly: AssemblyDescription("Core library of Event Assembler")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Nintenlord, Crazycolorx5")]
@@ -13,4 +13,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © Nintenlord 2011, Crazycolorz5 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("10.1.01.00")]
+[assembly: AssemblyVersion("11.0.00.00")]

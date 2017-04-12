@@ -129,11 +129,17 @@ namespace Nintenlord.Event_Assembler.Core.Code
       if (!this.languages.TryGetValue(language, out codeTemplateStorer))
         this.languages[language] = (ICodeTemplateStorer) new CodeTemplateStorer(this.templateComparer);
       this.languages[language].AddCode(doc.code, doc.priority);
-      this.languages[language].AddCode(doc.code.CopyWithNewName("_0x"+doc.code.ID.ToString("X4")), doc.priority);
-      if(doc.code.ID<=0xFF)
-      {
-          this.languages[language].AddCode(doc.code.CopyWithNewName("_0x" + doc.code.ID.ToString("X2")), doc.priority);
-      }
+            if (doc.code.ID != 0) {
+                ICodeTemplate fourByte = doc.code.CopyWithNewName("_0x" + doc.code.ID.ToString("X4"));
+                fourByte.CanBeDisassembled = false;
+                this.languages[language].AddCode(fourByte, doc.priority);
+                if (doc.code.ID <= 0xFF)
+                {
+                    ICodeTemplate twoByte = doc.code.CopyWithNewName("_0x" + doc.code.ID.ToString("X2"));
+                    twoByte.CanBeDisassembled = false;
+                    this.languages[language].AddCode(twoByte, doc.priority);
+                }
+            }
     }
 
     private LanguageProcessor.DocCode MakeCode(IList<LanguageProcessor.LanguageElement> elements, ref int index)

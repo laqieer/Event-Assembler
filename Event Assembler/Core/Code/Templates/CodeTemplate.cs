@@ -30,7 +30,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     private readonly int offsetMod;
     private readonly int amountOfFixedCode;
     private readonly bool canBeAssembled;
-    private readonly bool canBeDisassembled;
+    private bool canBeDisassembled;
     private readonly List<TemplateParameter> parameters;
     private readonly List<TemplateParameter> fixedParameters;
     private IPointerMaker pointerMaker;
@@ -89,6 +89,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       get
       {
         return this.canBeDisassembled;
+      }
+      set
+      {
+        canBeDisassembled = value;
       }
     }
 
@@ -321,7 +325,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
         return false;
       foreach (TemplateParameter fixedParameter in this.fixedParameters)
       {
-        if (!((IEnumerable<byte>) this.baseData.GetBits(fixedParameter.position, fixedParameter.lenght)).SequenceEqual<byte>((IEnumerable<byte>) data.GetBits(offset * 8 + fixedParameter.position, fixedParameter.lenght)))
+        if (!
+          (baseData.GetBits(fixedParameter.position, fixedParameter.lenght)).SequenceEqual(
+               data.GetBits(offset * 8 + fixedParameter.position, fixedParameter.lenght)))
           return false;
       }
       foreach (TemplateParameter parameter in this.parameters)

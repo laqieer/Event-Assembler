@@ -103,7 +103,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
     private string[][] GetEnderLines(int endingOffset)
     {
-      return new string[2][]{ "//The next line is for re-assembling purposes. Do not delete!".GetArray<string>(), new string[3]{ "MESSAGE", "Original ending offset is " + endingOffset.ToHexString("$") + " and the new ending offset is", "CURRENTOFFSET" } };
+      return new string[3][]{ "//The next line is to ensure that new events do not overwrite other data.".GetArray<string>(), "//Do not delete unless you are SURE you know what you are doing!".GetArray<string>(), new string[3]{ "ASSERT", endingOffset.ToHexString("$") + " -", "currentOffset" } };
     }
 
     private IEnumerable<string[]> GetLines(IEnumerable<KeyValuePair<int, Code>> lines, IDictionary<int, string> lables, bool addEndingMessages)
@@ -209,10 +209,13 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
         if (!lines.TryGetValue(currOffset, out ccode))
         {
           CanCauseError<Code> res = this.GetCode(code, currOffset, prioritiesToUse);
-          if (res.CausedError)
-            log.AddError(res.ErrorMessage);
-          else
-            yield return res.Result;
+            if (res.CausedError)
+                log.AddError(res.ErrorMessage);
+            else
+            {
+                ccode = res.Result;
+                yield return res.Result;
+            }
         }
         currOffset += ccode.Length;
       }

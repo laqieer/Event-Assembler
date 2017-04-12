@@ -65,27 +65,17 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       foreach (Priority allowedPriority in allowedPriorities)
       {
         List<ICodeTemplate> codeTemplateList;
-        if (this.disassemblyCodes.TryGetValue(new KeyValuePair<Priority, int>(allowedPriority, num), out codeTemplateList))
+        if (this.disassemblyCodes.TryGetValue(new KeyValuePair<Priority, int>(allowedPriority, num), out codeTemplateList) ||
+                    num != 0 && this.disassemblyCodes.TryGetValue(new KeyValuePair<Priority, int>(allowedPriority, 0), out codeTemplateList))
         {
-          List<ICodeTemplate> collection = new List<ICodeTemplate>();
-          foreach (ICodeTemplate codeTemplate in codeTemplateList)
-          {
-            if (codeTemplate.Matches(code, index))
-              collection.Add(codeTemplate);
-          }
-          if (collection.Count > 0)
-            return CanCauseError<ICodeTemplate>.NoError(collection.Max<ICodeTemplate>(this.templateComparer));
-        }
-        else if (num != 0 && this.disassemblyCodes.TryGetValue(new KeyValuePair<Priority, int>(allowedPriority, 0), out codeTemplateList))
-        {
-          List<ICodeTemplate> collection = new List<ICodeTemplate>();
-          foreach (ICodeTemplate codeTemplate in codeTemplateList)
-          {
-            if (codeTemplate.Matches(code, index))
-              collection.Add(codeTemplate);
-          }
-          if (collection.Count > 0)
-            return CanCauseError<ICodeTemplate>.NoError(collection.Max<ICodeTemplate>(this.templateComparer));
+            List<ICodeTemplate> collection = new List<ICodeTemplate>();
+            foreach (ICodeTemplate codeTemplate in codeTemplateList)
+            {
+                if (codeTemplate.CanBeDisassembled && codeTemplate.Matches(code, index))
+                    collection.Add(codeTemplate);
+            }
+            if (collection.Count > 0)
+                return CanCauseError<ICodeTemplate>.NoError(collection.Max<ICodeTemplate>(this.templateComparer));
         }
       }
       return CanCauseError<ICodeTemplate>.Error("No code found.");
@@ -101,7 +91,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       List<ICodeTemplate> templates;
       if (this.assemblyCodes.TryGetValue(codeName, out templates))
         return this.GetTemplateFrom(codeName, parameterTypes, templates);
-      if ((int) codeName[0] == 95)
+      if ((int) codeName[0] == '_')
       {
         if (this.assemblyCodes.TryGetValue(codeName.TrimStart('_'), out templates))
           return this.GetTemplateFrom(codeName, parameterTypes, templates);

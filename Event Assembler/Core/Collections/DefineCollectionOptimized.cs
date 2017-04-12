@@ -127,7 +127,16 @@ namespace Nintenlord.Event_Assembler.Core.Collections
         output.Append(s[index]);
     }
 
-    private struct UserDefinedReplacer : IEquatable<DefineCollectionOptimized.UserDefinedReplacer>, IMacro, IEquatable<IMacro>
+        public CanCauseError<string> ApplyPreprocessorDefines(string original)
+        {
+            IStringReplacer tempreplacer = new NewReplacer();
+            tempreplacer.MaxIter = 100;
+            tempreplacer.BuiltInValues = this.builtInValues;
+            tempreplacer.Values = new Dictionary<string, IDictionary<int, IMacro>>();
+            return tempreplacer.Replace(original);
+        }
+
+        private struct UserDefinedReplacer : IEquatable<DefineCollectionOptimized.UserDefinedReplacer>, IMacro, IEquatable<IMacro>
     {
       private string toReplaceWith;
       private string[] parameters;

@@ -7,10 +7,25 @@
     <ProjectGuid>{224C71E2-5E52-4910-910A-6FA9C2F937BE}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AssemblyName>Core</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <ApplicationVersion>9.10.4713.28131</ApplicationVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <RootNamespace>Nintenlord.Event_Assembler.Core</RootNamespace>
+    <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationVersion>11.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -21,6 +36,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -44,7 +60,7 @@
     <Compile Include="Code\Language\Expression\Tree\ArithmeticShiftRight.cs" />
     <Compile Include="Code\Language\Parser\ParseHelpers.cs" />
     <Compile Include="Code\Preprocessors\Directives\EasterEgg.cs" />
-    <Compile Include="Code\Preprocessors\Directives\IncludeTextExternal.cs" />
+    <Compile Include="Code\Preprocessors\Directives\IncludeToolEvent.cs" />
     <Compile Include="Code\Preprocessors\Directives\RunExternal.cs" />
     <Compile Include="Code\Preprocessors\Directives\IncludeExternal.cs" />
     <Compile Include="Program.cs" />
@@ -53,9 +69,7 @@
     <Compile Include="DisassemblyMode.cs" />
     <Compile Include="CoreInfo.cs" />
     <Compile Include="Collections\IDefineCollection.cs" />
-    <Compile Include="Collections\DefineCollectionOld.cs" />
     <Compile Include="Collections\DefineCollectionOptimized.cs" />
-    <Compile Include="Collections\DefineCollection.cs" />
     <Compile Include="Code\IParameterized.cs" />
     <Compile Include="Code\ScopeStructure`1.cs" />
     <Compile Include="Code\LanguageProcessor.cs" />
@@ -93,8 +107,6 @@
     <Compile Include="Code\Templates\TemplateComparer.cs" />
     <Compile Include="Code\Templates\TerminatingStringTemplate.cs" />
     <Compile Include="Code\Templates\CodeTemplate.cs" />
-    <Compile Include="Code\Templates\GenericFE8Template.cs" />
-    <Compile Include="Code\Templates\GenericFE8Ender.cs" />
     <Compile Include="Code\Templates\IFixedDocString.cs" />
     <Compile Include="Code\Templates\TemplateParameter.cs" />
     <Compile Include="Code\Language\EACodeLanguage.cs" />
@@ -163,7 +175,28 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

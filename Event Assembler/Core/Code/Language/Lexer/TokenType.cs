@@ -15,6 +15,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Lexer
     RightCurlyBracket,
     LeftSquareBracket,
     RightSquareBracket,
+    StringLiteral,
     IntegerLiteral,
     Symbol,
     MathOperator,

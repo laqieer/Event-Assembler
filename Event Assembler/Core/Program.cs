@@ -129,7 +129,8 @@ namespace Nintenlord.Event_Assembler.Core
       if (streamWriter == null)
         return;
       streamWriter.Dispose();
-    }
+
+        }
 
     private static void HandleFlags(List<string> flags, ILog messageLog, ref string rawsFolder, ref string rawsExtension, ref bool isDirectory, ref bool addEndGuards, ref string inputFile, ref string outputFile, ref string errorFile, ref string docHeader, ref string docFooter)
     {
@@ -350,8 +351,6 @@ namespace Nintenlord.Event_Assembler.Core
             throw new NotSupportedException("Language " + language.Key + " not supported.");
         }
         ICodeTemplateStorer codeStorer = language.Value;
-        if (language.Key == "FE8")
-          codeStorer.AddCode((ICodeTemplate) new GenericFE8Template(), Priority.none);
         EACodeLanguage eaCodeLanguage = new EACodeLanguage(language.Key, pointerMaker, pointerList, codeStorer, Program.stringComparer);
         Program.languages[language.Key] = eaCodeLanguage;
       }

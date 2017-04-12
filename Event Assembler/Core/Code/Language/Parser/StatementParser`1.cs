@@ -11,6 +11,7 @@ using Nintenlord.IO.Scanners;
 using Nintenlord.Parser;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
 {
@@ -27,17 +28,28 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
     {
       match = new Match<Token>(scanner);
       Token current = scanner.Current;
-      if (StatementParser<T>.IsStatementEnding(current.Type))
+      if (IsStatementEnding(current.Type))
       {
         ++match;
         scanner.MoveNext();
-        return (IExpression<T>) Nintenlord.Event_Assembler.Core.Code.Language.Expression.Code<T>.EmptyCode(current.Position);
+        return Code<T>.EmptyCode(current.Position);
       }
-      if (current.Type == Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.Symbol)
+      if(current.Type == TokenType.StringLiteral)
+      {
+            ++match;
+            scanner.MoveNext();
+            Match<Token> match2;
+            IExpression<T> expression = this.Statement(scanner, new Symbol<T>(current.Value.Substring(1, current.Value.Length-1), current.Position), out match2);
+            match += match2;
+            if (!match.Success)
+                return null;
+            return expression;
+      }
+      if (current.Type == TokenType.Symbol)
       {
         ++match;
         scanner.MoveNext();
-        if (scanner.Current.Type == Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.Colon)
+        if (scanner.Current.Type == TokenType.Colon)
         {
           ++match;
           scanner.MoveNext();
@@ -45,21 +57,21 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
           IExpression<T> labeledExpression = this.Parse(scanner, out match1);
           match += match1;
           if (!match.Success)
-            return (IExpression<T>) null;
-          return (IExpression<T>) new LabeledExpression<T>(current.Position, current.Value, labeledExpression);
+            return null;
+          return new LabeledExpression<T>(current.Position, current.Value, labeledExpression);
         }
         Match<Token> match2;
         IExpression<T> expression = this.Statement(scanner, new Symbol<T>(current.Value, current.Position), out match2);
         match += match2;
         if (!match.Success)
-          return (IExpression<T>) null;
+          return null;
         return expression;
       }
       match = new Match<Token>(scanner, "Expected statement or label, got {0}", new object[1]
       {
-        (object) current
+        current
       });
-      return (IExpression<T>) null;
+      return null;
     }
 
     private IExpression<T> Statement(IScanner<Token> scanner, Symbol<T> name, out Match<Token> match)
@@ -115,7 +127,7 @@ label_9:
         return (IExpression<T>) null;
       if (flag)
         throw new ArgumentException();
-      return (IExpression<T>) new Nintenlord.Event_Assembler.Core.Code.Language.Expression.Code<T>(name, parameters);
+      return (IExpression<T>) new Code<T>(name, parameters);
     }
 
     private static bool IsStatementEnding(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType type)

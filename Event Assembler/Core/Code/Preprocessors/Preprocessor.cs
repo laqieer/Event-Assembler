@@ -62,7 +62,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
       }
     }
 
-    public Preprocessor(ILog messageLog)
+    public Preprocessor(ILog messageLog/*, string outputFile*/)
     {
       this.messageLog = messageLog;
       this.predefined = new List<string>();
@@ -82,6 +82,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
       collectionOptimized["AddToPool"] = (IMacro) this.pool;
       collectionOptimized["_line_"] = (IMacro) this.curLine;
       collectionOptimized["_file_"] = (IMacro) this.curFile;
+      //collectionOptimized["_rom_"] = (IMacro) outputFile;
       this.defCol = (IDefineCollection) collectionOptimized;
       this.include = new Stack<bool>();
       this.include.Push(true);
@@ -121,26 +122,35 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
       StringBuilder line1 = new StringBuilder(line);
       if (!Nintenlord.Utility.Parser.ReplaceCommentsWith(line1, ' ', ref this.blockCommentDepth))
         this.messageLog.AddError(inputStream.GetErrorString("Error removing comments"));
-      line = line1.ToString();
-      if (line.FirstNonWhiteSpaceIs('#'))
-      {
-        this.HandleDirective(line);
-        return "";
+      line = line1.ToString().Trim();
+//      foreach (string oldValue in this.predefined)
+//          newLine = newLine.Replace(oldValue, " ");
+      if(line.FirstNonWhiteSpaceIs('#')) {
+          CanCauseError<string> canCauseError = this.defCol.ApplyPreprocessorDefines(line);
+          if (!canCauseError.CausedError) {
+              this.HandleDirective(canCauseError.Result);
+              return "";
+          } else if (!this.include.And()) {
+              return "";
+          } else {
+              this.messageLog.AddError(inputStream.GetErrorString(canCauseError.ErrorMessage));
+              return line;
+          }
+      } else {
+          CanCauseError<string> customDefines = this.defCol.ApplyDefines(line);
+                if (this.include.And() && !customDefines.CausedError)
+                {
+                    string newLine = customDefines.Result;
+                    if (this.defCol.ContainsName("USING_CODE"))
+                        newLine = Preprocessor.HandleCODE(newLine);
+                    return newLine;
+                }
+                else if (!this.include.And()) { return ""; }
+                {
+              this.messageLog.AddError(inputStream.GetErrorString(customDefines.ErrorMessage));
+              return line;
+          }
       }
-      if (!this.include.And())
-        return "";
-      CanCauseError<string> canCauseError = this.defCol.ApplyDefines(line);
-      if (!canCauseError.CausedError)
-      {
-        string newLine = canCauseError.Result;
-        foreach (string oldValue in this.predefined)
-          newLine = newLine.Replace(oldValue, " ");
-        if (this.defCol.ContainsName("USING_CODE"))
-          newLine = Preprocessor.HandleCODE(newLine);
-        return newLine;
-      }
-      this.messageLog.AddError(inputStream.GetErrorString(canCauseError.ErrorMessage));
-      return line;
     }
 
     public static string HandleCODE(string newLine)
@@ -224,7 +234,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
         length = parameters1.Length - 1;
       }
       string[] parameters2 = new string[length];
-      Array.Copy((Array) parameters1, parameters1.Length - length, (Array) parameters2, 0, length);
+      Array.Copy(parameters1, parameters1.Length - length, (Array) parameters2, 0, length);
       IDirective parameterized;
       if (this.directives.TryGetValue(key, out parameterized))
       {

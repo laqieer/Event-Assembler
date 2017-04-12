@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Nintenlord.Event_Assembler.Core.IO.Logs
 {
-  internal class TextWriterMessageLog : MessageLog
+  public class TextWriterMessageLog : MessageLog
   {
     private TextWriter writer;
 

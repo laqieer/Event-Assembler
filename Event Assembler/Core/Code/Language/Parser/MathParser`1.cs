@@ -498,6 +498,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
                     {
                         goto default;
                     }
+                case TokenType.StringLiteral:
                 case TokenType.Symbol:
                     scanner.MoveNext(); match++;
                     return new Symbol<T>(token.Value, token.Position);

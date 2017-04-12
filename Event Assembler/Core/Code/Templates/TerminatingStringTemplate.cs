@@ -98,6 +98,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       }
     }
 
+    public bool CanBeDisassembled { get { return true; } set { } } //TODO?
+    public bool CanBeAssembled { get { return true; } }
+
     public TerminatingStringTemplate(string name, IEnumerable<TemplateParameter> parameters, int endingValue, int offsetMod, StringComparer stringComparer)
     {
       this.offsetMod = offsetMod;

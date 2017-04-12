@@ -73,9 +73,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
                 }
                 if (finalParams[i].ContainsWhiteSpace())
                     finalParams[i] = "\"" + finalParams[i] + "\"";
-            }
-            */
-            p.StartInfo.Arguments = finalParams.ToElementWiseString(" ", "", " --to-stdout");
+            }*/
+            
+            p.StartInfo.Arguments = passedParams.ToElementWiseString(" ", "", " --to-stdout");
             p.Start();
             // Do not wait for the child process to exit before
             // reading to the end of its redirected stream.

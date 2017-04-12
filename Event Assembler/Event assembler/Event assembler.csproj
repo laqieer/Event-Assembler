@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -27,6 +27,7 @@
     <TargetZone>LocalIntranet</TargetZone>
     <NoWin32Manifest>true</NoWin32Manifest>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <TargetFrameworkProfile />
     <PublishUrl>C:\Users\Timo\Desktop\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -37,11 +38,10 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>16</ApplicationRevision>
-    <ApplicationVersion>1.0.0.16</ApplicationVersion>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,6 +51,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -60,8 +61,21 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Core">
+      <HintPath>..\Core\bin\Release\Core.exe</HintPath>
+    </Reference>
+    <Reference Include="Nintenlord, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\ToolBox\Event Assembler\Nintenlord.dll</HintPath>
+    </Reference>
+    <Reference Include="Nintenlord.Forms, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\ToolBox\Event Assembler\Nintenlord.Forms.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -72,13 +86,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UserInterface\FormHelpers.cs">
-    </Compile>
     <Compile Include="UserInterface\EnumChooser.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UserInterface\EnumChooser.Designer.cs">
       <DependentUpon>EnumChooser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserInterface\FormHelpers.cs">
     </Compile>
     <Compile Include="UserInterface\EnumChooserForm.cs">
       <SubType>Form</SubType>
@@ -133,6 +147,11 @@
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
@@ -386,6 +405,8 @@
     <Content Include="Scripts\How to use.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="app.config" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="Scripts\Generate notepad++ files.cmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -397,21 +418,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Nintenlord.Forms\Nintenlord.Forms.csproj">
-      <Project>{D0FE49CC-1B13-4C04-B3C1-C1A9B1872A36}</Project>
-      <Name>Nintenlord.Forms</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Nintenlord\Nintenlord.csproj">
-      <Project>{8FA48EF8-3E11-494A-B587-592D7C22EFDF}</Project>
-      <Name>Nintenlord</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Core.csproj">
-      <Project>{E42C2BFC-4DDC-4E80-A54F-80606AE255ED}</Project>
-      <Name>Core %28ROMHacking\Event Assembler\Core%29</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="EAstdlib.event">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -16,10 +16,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     {
       if (a == b)
         return 0;
-      if (a.GetType() == typeof (GenericFE8Template))
+      /* if (a.GetType() == typeof (GenericFE8Template))
         return -1;
       if (b.GetType() == typeof (GenericFE8Template))
-        return 1;
+        return 1; */
       if (a.AmountOfFixedCode != b.AmountOfFixedCode)
         return a.AmountOfFixedCode - b.AmountOfFixedCode;
       if (a.OffsetMod != b.OffsetMod)
