@@ -99,7 +99,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
             return CanCauseError.NoError;
         }
 
-        private string getFileName(string toolName)
+        private static string getFileName(string toolName)
         {
             switch(Environment.OSVersion.Platform)
             {

@@ -66,11 +66,13 @@ V 10.1
 -Added MNTS code for FE8 (returns to title screen)
 -Fixed Fe8Code assembling, which was produced by the disassembler.
 
-V 11.0
+V10.1.1
 -Added POIN2; it's just POIN but doesn't require word-alignment.
 -Fixed Hack Installation/setPointerTableEntry
--Added #inctevent for programs that output event code, rather than just binary.
- -Aliased as #inctext for backwards compatability with V10.1.1
+-Added #inctext for programs that output event code, rather than just binary.
+
+V 11.0
+-Changed #inctext to #inctevent. I recommnend the use of this name in the future because it's more intuitive.
 -Fixed bug where Core would hang if it got an invalid input file.
 -Added PROTECT (start) (end) to make a region write-protected.
 -Made Event assembler.exe look for .event files by default (over .txt)
@@ -81,6 +83,9 @@ V 11.0
 -Made disassembly work again; changed auto-adding of _0x codes to not mess up disassembly.
 -Changed disassemblies to use ASSERT for stronger protection over just MESSAGE-ing the currentOffset.
 -Changed scripts to take/output .event files by default.
+
+V11.0.1
+-Aliased #inctevent as #inctext for backwards compatability with V10.1.1
 
 -------------------
 Additional Credits:

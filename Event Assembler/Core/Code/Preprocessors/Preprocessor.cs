@@ -86,7 +86,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
       this.defCol = (IDefineCollection) collectionOptimized;
       this.include = new Stack<bool>();
       this.include.Push(true);
-      this.directives = ((IEnumerable<IDirective>)new IDirective[13]
+      this.directives = ((IEnumerable<IDirective>)new IDirective[14]
       {
         (IDirective) new IfDefined(),
         (IDirective) new IfNotDefined(),

@@ -61,6 +61,7 @@
     <Compile Include="Code\Language\Parser\ParseHelpers.cs" />
     <Compile Include="Code\Preprocessors\Directives\EasterEgg.cs" />
     <Compile Include="Code\Preprocessors\Directives\IncludeToolEvent.cs" />
+    <Compile Include="Code\Preprocessors\Directives\IncludeToolEventAlias.cs" />
     <Compile Include="Code\Preprocessors\Directives\RunExternal.cs" />
     <Compile Include="Code\Preprocessors\Directives\IncludeExternal.cs" />
     <Compile Include="Program.cs" />
