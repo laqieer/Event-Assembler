@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Nintenlord.Event_Assembler</RootNamespace>
-    <AssemblyName>Event assembler</AssemblyName>
+    <AssemblyName>Event Assembler</AssemblyName>
     <StartupObject>
     </StartupObject>
     <ApplicationIcon>Sixth.ico</ApplicationIcon>
@@ -156,70 +156,70 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="EA Standard library\Backward Compatibility.txt">
+    <Content Include="EA Standard Library\Backward Compatibility.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Boolean Logic.txt">
+    <Content Include="EA Standard Library\Boolean Logic.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Chapter Definitions.txt">
+    <Content Include="EA Standard Library\Chapter Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Chapter Structure Helpers.txt">
+    <Content Include="EA Standard Library\Chapter Structure Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Convo Background Definitions.txt">
+    <Content Include="EA Standard Library\Convo Background Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Convo Helpers.txt">
+    <Content Include="EA Standard Library\Convo Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Random Monster Templates.txt">
+    <Content Include="EA Standard Library\Random Monster Templates.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Trap Helpers.txt">
+    <Content Include="EA Standard Library\Trap Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="EAstdlib Macro and Command List.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\End Of Chapter Helpers.txt">
+    <Content Include="EA Standard Library\End Of Chapter Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\FE6 Definitions.txt">
+    <Content Include="EA Standard Library\FE6 Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\FE7 Definitions.txt">
+    <Content Include="EA Standard Library\FE7 Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\FE7 Tutorial Disabler.txt">
+    <Content Include="EA Standard Library\FE7 Tutorial Disabler.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\FE8 Definitions.txt">
+    <Content Include="EA Standard Library\FE8 Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Main Code Helpers.txt">
+    <Content Include="EA Standard Library\Main Code Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Misc Helpers.txt">
+    <Content Include="EA Standard Library\Misc Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Music Definitions.txt">
+    <Content Include="EA Standard Library\Music Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Numeric Helpers.txt">
+    <Content Include="EA Standard Library\Numeric Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Tile Changes.txt">
+    <Content Include="EA Standard Library\Tile Changes.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Unit Helpers.txt">
+    <Content Include="EA Standard Library\Unit Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\Weather Definitions.txt">
+    <Content Include="EA Standard Library\Weather Definitions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EA Standard library\World Map Helpers.txt">
+    <Content Include="EA Standard Library\World Map Helpers.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="FE7 Template.txt">
@@ -228,169 +228,169 @@
     <Content Include="FE8 Template.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\ASM Code.txt">
+    <Content Include="Language Raws\ASM Code.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Convos\Skipping.txt">
+    <Content Include="Language Raws\Convos\Skipping.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Raw code.txt">
+    <Content Include="Language Raws\Raw code.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Traps.txt">
+    <Content Include="Language Raws\Traps.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Camera.txt">
+    <Content Include="Language Raws\Camera.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Conditional\ASM conditions.txt">
+    <Content Include="Language Raws\Conditional\ASM conditions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Conditional\Basic.txt">
+    <Content Include="Language Raws\Conditional\Basic.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Conditional\Chapter state conditions.txt">
+    <Content Include="Language Raws\Conditional\Chapter state conditions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Conditional\Character conditions.txt">
+    <Content Include="Language Raws\Conditional\Character conditions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Convos\Fade in or out.txt">
+    <Content Include="Language Raws\Convos\Fade in or out.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Convos\Return from convo.txt">
+    <Content Include="Language Raws\Convos\Return from convo.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Convos\Show backgrounds.txt">
+    <Content Include="Language Raws\Convos\Show backgrounds.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Convos\Text.txt">
+    <Content Include="Language Raws\Convos\Text.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Cursor.txt">
+    <Content Include="Language Raws\Cursor.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\End of event.txt">
+    <Content Include="Language Raws\End of event.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Event execution manipulation.txt">
+    <Content Include="Language Raws\Event execution manipulation.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Event ID manipulation.txt">
+    <Content Include="Language Raws\Event ID manipulation.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Item and money\Items.txt">
+    <Content Include="Language Raws\Item and money\Items.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Item and money\Money.txt">
+    <Content Include="Language Raws\Item and money\Money.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Main codes\After event.txt">
+    <Content Include="Language Raws\Main codes\After event.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Main codes\Area event.txt">
+    <Content Include="Language Raws\Main codes\Area event.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Main codes\Character based events.txt">
+    <Content Include="Language Raws\Main codes\Character based events.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Main codes\Location based event.txt">
+    <Content Include="Language Raws\Main codes\Location based event.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Main codes\Others.txt">
+    <Content Include="Language Raws\Main codes\Others.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Main codes\Turn based event.txt">
+    <Content Include="Language Raws\Main codes\Turn based event.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Map\Change map.txt">
+    <Content Include="Language Raws\Map\Change map.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Map\Load map.txt">
+    <Content Include="Language Raws\Map\Load map.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Move to chapter.txt">
+    <Content Include="Language Raws\Move to chapter.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Music and sound\Change music.txt">
+    <Content Include="Language Raws\Music and sound\Change music.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Music and sound\Change volume.txt">
+    <Content Include="Language Raws\Music and sound\Change volume.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Out of beginning blackness.txt">
+    <Content Include="Language Raws\Out of beginning blackness.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Pointer.txt">
+    <Content Include="Language Raws\Pointer.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Stall.txt">
+    <Content Include="Language Raws\Stall.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Change affiliation.txt">
+    <Content Include="Language Raws\Units\Change affiliation.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Change AI.txt">
+    <Content Include="Language Raws\Units\Change AI.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Change unit condition.txt">
+    <Content Include="Language Raws\Units\Change unit condition.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Disappear.txt">
+    <Content Include="Language Raws\Units\Disappear.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\End of unit changing.txt">
+    <Content Include="Language Raws\Units\End of unit changing.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Fighting.txt">
+    <Content Include="Language Raws\Units\Fighting.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Killing.txt">
+    <Content Include="Language Raws\Units\Killing.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Loading.txt">
+    <Content Include="Language Raws\Units\Loading.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Moving.txt">
+    <Content Include="Language Raws\Units\Moving.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Promote.txt">
+    <Content Include="Language Raws\Units\Promote.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Reappear.txt">
+    <Content Include="Language Raws\Units\Reappear.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Unit.txt">
+    <Content Include="Language Raws\Units\Unit.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Units\Warp.txt">
+    <Content Include="Language Raws\Units\Warp.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\Weather and fog.txt">
+    <Content Include="Language Raws\Weather and fog.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\World map\Basic.txt">
+    <Content Include="Language Raws\World map\Basic.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\World map\Map sprites.txt">
+    <Content Include="Language Raws\World map\Map sprites.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\World map\Map.txt">
+    <Content Include="Language Raws\World map\Map.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\World map\Portraits.txt">
+    <Content Include="Language Raws\World map\Portraits.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\World map\Text.txt">
+    <Content Include="Language Raws\World map\Text.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\_ExperimentalFE6.txt">
+    <Content Include="Language Raws\_ExperimentalFE6.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\_ExperimentalFE7.txt">
+    <Content Include="Language Raws\_ExperimentalFE7.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Language raws\_ExperimentalFE8.txt">
+    <Content Include="Language Raws\_ExperimentalFE8.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="README.txt">
@@ -422,8 +422,8 @@
     <None Include="EAstdlib.event">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Language raws\FireEmblem.lang" />
-    <None Include="Language raws\Language.raws">
+    <None Include="Language Raws\FireEmblem.lang" />
+    <None Include="Language Raws\Language.Raws">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Scripts\Assemble FE6 chapters.cmd">
