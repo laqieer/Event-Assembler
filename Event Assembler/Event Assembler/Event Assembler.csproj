@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Nintenlord.Event_Assembler</RootNamespace>
-    <AssemblyName>Event assembler</AssemblyName>
+    <AssemblyName>Event Assembler</AssemblyName>
     <StartupObject>
     </StartupObject>
     <ApplicationIcon>Sixth.ico</ApplicationIcon>
