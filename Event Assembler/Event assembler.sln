@@ -4,7 +4,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NigthmareListToEAdefinitions", "NigthmareListToEAdefinitions\NigthmareListToEAdefinitions.csproj", "{2ADB8ED4-647E-4DCC-9387-E50D6A03CA39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Event Assembler", "Event assembler\Event Assembler.csproj", "{84C43E97-CE18-4A33-99BF-98A19E5E2093}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Event assembler", "Event assembler\Event assembler.csproj", "{84C43E97-CE18-4A33-99BF-98A19E5E2093}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D0FE49CC-1B13-4C04-B3C1-C1A9B1872A36} = {D0FE49CC-1B13-4C04-B3C1-C1A9B1872A36}
 		{224C71E2-5E52-4910-910A-6FA9C2F937BE} = {224C71E2-5E52-4910-910A-6FA9C2F937BE}
