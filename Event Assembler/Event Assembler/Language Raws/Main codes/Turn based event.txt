@@ -56,5 +56,8 @@ TURN, 2, 128, -priority:main -language:FE7
 ##Extra conditions for the event. 0 means no extra condition.
 	Extra4, 120, 8
 
-TURN, 0, 4, -priority:main -language:FE6:FE8:FE7 -end -indexMode:8 -noDisassembly
+TURN, 0, 4, -priority:main -language:FE6:FE7 -end -indexMode:8 -noDisassembly
+	0, 0, 4, -fixed
+    
+TURN, 0, 4, -priority:main -language:FE8 -end -indexMode:8 -noDisassembly
 	0, 0, 4, -fixed

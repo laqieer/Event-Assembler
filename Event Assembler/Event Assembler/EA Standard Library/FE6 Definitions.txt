@@ -26,6 +26,8 @@
 #define Oujay 0x19
 #define Garret 0x1A
 #define Alen 0x1B
+#define Alan 0x1B
+#define Allen 0x1B
 #define Lance 0x1C
 #define Percival 0x1D
 #define Igrene 0x1E
@@ -151,7 +153,9 @@
 #define Druid 0x1E
 #define Druid_F 0x1F
 #define Socialknight 0x20
+#define Cavalier 0x20
 #define Socialknight_F 0x21
+#define Cavalier_F 0x20
 #define Paladin 0x22
 #define Paladin_F 0x23
 #define Troubadour 0x24

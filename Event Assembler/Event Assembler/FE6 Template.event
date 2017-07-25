@@ -44,5 +44,5 @@ Ending_event:
 MoveToChapter(NextChapter)
 ENDA
 
-MESSAGE Events end at offset currentOffset
+MESSAGE Events end at offset CURRENTOFFSET
 //The map for this chapter is at offset: ????????

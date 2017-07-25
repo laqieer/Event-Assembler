@@ -83,9 +83,26 @@ REPOS, 0x2F, 12, -game:FE7 -indexMode:8
 	
 #Movement codes
 MOVE, 0x2F40, 8, -game:FE8 -indexMode:8
-	0, 2, 2, -fixed
+	Speed, 2, 2
 	Character, 4, 2
 	Position to move to, 6, 2, -coordinate:2 -preferredBase:10
+
+MOVEONTO, 0x2F41, 8, -game:FE8 -indexMode:8
+	Speed, 2, 2
+	Character, 4, 2
+	Target Character, 6, 2
+
+#Move one step
+MOVE_1STEP, 0x2F42, 8, -game:FE8 -indexMode:8
+	Speed, 2, 2
+	Character, 4, 2
+	Direction, 6, 2
+
+#Tutorial Movement
+MOVEFORCED, 0x2F43, 8, -game:FE8 -indexMode:8
+	Value1, 2, 2
+	Character, 4, 2
+	Value3, 6, 2
 
 
 

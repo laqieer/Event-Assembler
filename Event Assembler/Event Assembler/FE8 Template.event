@@ -20,6 +20,7 @@ POIN BeginningScene EndingScene
 
 TurnBasedEvents:
 END_MAIN
+ALIGN 32 //For some reason, CharacterBasedEvents have to be 32-Aligned?
 
 CharacterBasedEvents:
 END_MAIN
@@ -32,12 +33,10 @@ CauseGameOverIfLordDies
 END_MAIN
 
 Dunno:
-//DO NOT TOUCH
-WORD $00
+END_MAIN
 
 Tutorial:
-//DO NOT TOUCH
-WORD $00
+END_MAIN
 
 TrapData:
 ENDTRAP
@@ -54,4 +53,4 @@ EndingScene:
 MoveToChapter(NextChapter)
 ENDA
 
-MESSAGE Events end at offset currentOffset
+MESSAGE Events end at offset CURRENTOFFSET

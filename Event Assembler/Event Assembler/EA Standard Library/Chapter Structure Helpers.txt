@@ -3,17 +3,18 @@
 //Chapter data pointer list editing
 #ifdef _FE6_
 #define EventPointerListOffset 0x664398
-#define EventPointerTable(id,offset) "ORG EventPointerListOffset+(4*id); POIN offset"
+#define EventPointerTable(id,offset) "PUSH; ORG EventPointerListOffset+(4*id); POIN offset; POP"
 #endif
 
 #ifdef _FE7_
 #define EventPointerListOffset 0xC9C9C8
-#define EventPointerTable(id,offset) "ORG EventPointerListOffset+(4*id); POIN offset"
+#define EventPointerTable(id,offset) "PUSH; ORG EventPointerListOffset+(4*id); POIN offset; POP"
 #endif
 
 #ifdef _FE8_
 #define EventPointerListOffset 0x8B363C
-#define EventPointerTable(id,offset) "ORG EventPointerListOffset+(4*id); POIN offset"
+#define EventPointerTable(id,offset) "PUSH; ORG EventPointerListOffset+(4*id); POIN offset; POP"
+#define SkirmishEvents(offset) "PUSH; ORG 0x1540C; POIN offset; POP"
 #endif
 
 

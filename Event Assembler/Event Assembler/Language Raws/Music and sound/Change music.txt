@@ -1,32 +1,34 @@
 ##Changes music.
-MUS1, 0x36, 8, -game:FE6 -indexMode:8
+#Was MUS1
+MUSC, 0x36, 8, -game:FE6 -indexMode:8
 ##Music to change to.
 	Music ID, 4, 2
 
-MUS1, 0x78, 4, -game:FE7 -indexMode:8
+MUSC, 0x78, 4, -game:FE7 -indexMode:8
 	Music ID, 2, 2
 
-MUS1, 0x1220, 4, -game:FE8 -indexMode:8
+MUSC, 0x1220, 4, -game:FE8 -indexMode:8
 	Music ID, 2, 2
 
 ##Changes music while saving the previous song
 ##so you can restore it with MURE.
-MUS2, 0x37, 8, -game:FE6 -indexMode:8
+MUSS, 0x37, 8, -game:FE6 -indexMode:8
 ##Music to change to.
 	Music ID, 4, 2
 
-MUS2, 0x79, 4, -game:FE7 -indexMode:8
+MUSS, 0x79, 4, -game:FE7 -indexMode:8
 	Music ID, 2, 2
 
-MUS2, 0x1420, 4, -game:FE8 -indexMode:8
+MUSS, 0x1420, 4, -game:FE8 -indexMode:8
 	Music ID, 2, 2
 
-##Changes music.
-MUS3, 0x7B, 8, -game:FE7 -indexMode:8
+##Plays music simultaneously with the first; second parameter is fade in speed for both, larger is slower.
+MUSM, 0x7B, 8, -game:FE7 -indexMode:8
 ##Music to change to.
 	Music ID, 2, 2
-##Unknown.
-	Value, 4, 4
+##Fade in speed. Larger is slower.
+	Fade in speed, 4, 1
+	0, 5, 3, -fixed
 
 #Chapters: 1, 17A, 18A
 ##Play sound effect.
@@ -36,6 +38,9 @@ SOUN, 0x3C, 8, -game:FE6 -indexMode:8
 
 
 SOUN, 0x7F, 4, -game:FE7 -indexMode:8
+	Music ID, 2, 2
+
+SOUN, 0x1620, 4, -game:FE8 -indexMode:8
 	Music ID, 2, 2
 
 ##Returns to previous music after MUS2.
@@ -54,6 +59,23 @@ MURE, 0x1421, 4, -game:FE8 -indexMode:8
 ##Music to change to.
 #	Music ID, 4, 2
 
-#MK404: doesn't work, 0x1620 works
-SOUN, 0x1720, 4, -game:FE8 -indexMode:8
-	Music ID, 2, 2
+	
+#Changes music to the given value?
+#Game always uses it with 0x7FFF (silence)
+MUSCFAST, 0x1322, 4, -game:FE8 -indexMode:8
+	Value1, 2, 2
+
+#Another change music
+#Longer fade out time than 1322
+MUSCMID, 0x1324, 4, -game:FE8 -indexMode:8
+	Value1, 2, 2
+
+#ANOTHER change music?
+#Even longer fadeout?
+MUSCSLOW, 0x1326, 4, -game:FE8 -indexMode:8
+	Value1, 2, 2
+
+#Sudden Music Change and doesn't unlock in sound room
+#Doesn't unlock the track in sound room.
+SUDDENMUS, 0x1620, 4, -game:FE8 -indexMode:8
+	Value1, 2, 2

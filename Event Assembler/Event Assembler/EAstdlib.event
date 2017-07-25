@@ -11,16 +11,18 @@
 //#define EA_STDLIB_VERSION_2_11
 //#define EA_STDLIB_VERSION_2_12
 //#define EA_STDLIB_VERSION_2_13
-#define EA_STDLIB_VERSION_2_14
-
-
+//#define EA_STDLIB_VERSION_2_14
+//#define EA_STDLIB_VERSION_3_0 //Crazycolorz5's edits
+//#define EA_STDLIB_VERSION_3_1
+//#define EA_STDLIB_VERSION_3_2
+#define EA_STDLIB_VERSION_3_3
 
 /****************************************************************\
-Version 2.14
+Version 3.3
 
 How to use EA standard library:
  Include this file, EAstdlib.event, to your code.
- Then use macro's and definitions you see in 
+ Then use macro's and definitions you see in
  EA Standard library folder.
 
 Changes:
@@ -44,7 +46,7 @@ V 1.5:
 -Added CursorFlash macros for FE6 and FE7
 -Added tutorial disabling macro. Define DISABLE_TUTORIALS
  before including this file to activate it. Define
- EMPTY_TUTORIAL_OFFSET before including this file to use 
+ EMPTY_TUTORIAL_OFFSET before including this file to use
  custom empty tutorial.
 -Added event pointer macro.
 -Added FE8 unit flag helpers.
@@ -68,7 +70,7 @@ _Added Weather definitions for all 3 GBA games.
 -Added battle data helpers.
 -Removed chapter pointer list helpers.
 V 2.1:
--Added more main code helpers, including some common 
+-Added more main code helpers, including some common
  events they point to.
 -Added numeric helpers.
 -Added FE7 and 8 World map backwards compability definitions.
@@ -117,7 +119,7 @@ V 2.6
 -Added ClearBrownBox for FE7 thanks to Arch.
 -Stole Ballista helpers and FE8 battle helpers from Camtech.
 V 2.7
--Changed FE7 and FE6 VillageEventItem and VillageEventMoney to match 
+-Changed FE7 and FE6 VillageEventItem and VillageEventMoney to match
  what the game uses.
 -Changed TileChange macro to fit new codes and added a warning.
 V 2.8
@@ -131,7 +133,7 @@ V 2.9
 -Added fixed battle helpers for FE8.
 -Fixed Franz being missplelled as Frantz.
 -Added more FE8 fixed battle helpers.
--Fixed the missing semcolon from EndAttack macro for FE8.
+-Fixed the missing semicolon from EndAttack macro for FE8.
 -Added option to not have backwards compatibility
  by defining NO_BACKWARDS_COMPATIBILITY.
 V 2.10
@@ -146,71 +148,135 @@ V 2.13
 -Fixed Survive macro for FE7 code missing a parameter.
 V 2.14
 -Removed ENDA from LynModeEnding macro.
-V 2.15
--Added TurnEventNPC TODO
--Added Skirmish/Lagdou/Valni monster template helpers TODO
--Added unit condition helper TODO, thanks to Blazer and Kitty of Time.
+V 3.0 (Crazycolorz5's edits)
+-FE6, FE7, FE8: Changed AI macros. Old ones are accessable through #define OLD_AI before including EASTDLIB. New AI only defines bytes for AI1 and AI2. Macros are there to aid in byte-by-byte construction. Major overhaul of the AI definitions.
+-FE7, FE8: Separated AI definitions into AI Helpers.
+-FE6, FE7: Overloaded flash cursor on a character with a version that didn't take the dummy time parameter.
+-FE7, FE8: Integrated Escape Point Helper macros EscapePointPointerTable and NPCEscapePointPOinterTable. Declare escape point with EscapePoint(XX,YY,exit_direction) and EscapePointEnd. Change location of the table by redefining EscapePointTableOffset and NPCEscapePointTableOffset (shouldn't be nexessary to repoint the table).
+-FE7: Changed music definitions to have proper capitalization ("Livestaff_map"->"LiveStaff_map"). Also added localized names. ("LiveStaff_map"->"HealStaff_map")
+-FE7, FE8: Changed FE7 and FE8 Definitions to be more modern (eg "IronSpear" -> "IronLance", "Naglfal" -> "Naglfar")
+-FE7: Added EndRumble
+-FE8: Fixed typo in Journeyman_3 definition
+-FE7: Added Lightning effect macro from EN
+-FE6, FE7, FE8: Added NoItems definition from EN
+-FE6, FE7, FE8: Added TurnEventNPC from EN
+-FE7, FE8: Added BecomeAlly/Enemy/NPC aliases for TurnAlly/Enemy/NPC
+-FE7: Added RunCharacterEndings from EN
+-FE7: Added ClearAllUnits alias to UnitClear
+-FE7: Added Drop macro from EN
+-FE7: Added macros FireTrap, GasTrap/PoisonTrap
+-FE7: Added DeathQuoteTable and BattleQuoteTable macros. You can change where the table is by defining DQPointerTable and BQTableOffset (Thanks to Agro http://feuniverse.us/t/battle-death-quotes-via-event-macros/66, though I modified the macro a bit)
+
+V 3.1
+-FE6, FE7, FE8: Made MUS1 into MUSC(music change), MUS2 into MUSS (music save), MUS3 into MUSM (music more). Added old definitions in #define BACKWARDS_COMPATIBILITY
+-FE6: Added QuakeStart and QuakeStop (thanks to circleseverywhere)
+-FE6: Added modernized definitions in the definitions file.
+-Fixed typo in FE7's Backwards Compatibility.
+-FE8: Fixed typo that made SOUN code be FADU code. (Thanks to MK404)
+-FE8: Added "Silent" in music definitions as 0x7FFF
+-FE8: Added GiveMoney(amount) macro to help with that.
+-FE8: Added SVAL/SMOV aliases to SETVAL. Changed SLOTS_ADD to SADD and other assembly-like commands.
+-FE8: Added TUTORIALTEXTBOXSTART and NOTIFICATIONTEXTBOXSTART
+-EAStdLib: Separated out conditional helps from Misc Helpers to Conditional Helpers
+-FE8: Changed TEX8 to BROWNBOXTEXT.
+-FE8: Added CLEAN and PREP codes. The macro is the way to go, but these will show up in disassembly.
+-FE8: Added r0-r13/rD defintions for the setval slots. QP for QueuePointer
+-FE8: Added SkirmishEvents for repointing of Skirmish Events, but I don't think we're ready to mess with this yet.
+-FE8: Added FlashWhite/FlashBlack macros.
+-FE8: Fixed ENIF not having a definition in backwards compatability for conditionals
+-FE8: Added ClearBackground macro.
+
+V3.2
+-FE8: Added "Slots Helpers.txt".
+-FE8: Added ClearBackgroundSmooth -- just does a FADI before the call.
+-FE8: Fixed ReinforcementEvent macro (was incorrect before).
+-ALL: Updated all macros that used ORG to now take advantage of PUSH/POP.
+
+V3.3
+-FE6,FE7: Added old definitions (spears, etc) through BACKWARDS_COMPATIBILITY.
+
+V3.4
+-FE8: Fixed bad definition of IFET (now is CHECK_EVENTID)
+
 \****************************************************************/
 
-#include "EA Standard library\Boolean Logic.txt"
+#include "EA Standard Library/Boolean Logic.txt"
 
-#include "EA Standard library\Numeric Helpers.txt"
+#include "EA Standard Library/Numeric Helpers.txt"
 
-#include "EA Standard library\Unit Helpers.txt"
+#include "EA Standard Library/Unit Helpers.txt"
 
-#include "EA Standard library\World Map Helpers.txt"
+#include "EA Standard Library/AI Helpers.txt"
 
-#include "EA Standard library\Weather Definitions.txt"
+#include "EA Standard Library/World Map Helpers.txt"
 
-#include "EA Standard library\Chapter Structure Helpers.txt"
+#include "EA Standard Library/Weather Definitions.txt"
 
-#include "EA Standard library\Main Code Helpers.txt"
+#include "EA Standard Library/Chapter Structure Helpers.txt"
 
-#include "EA Standard library\Misc Helpers.txt"
+#include "EA Standard Library/Main Code Helpers.txt"
 
-#include "EA Standard library\Convo Background Definitions.txt"
+#include "EA Standard Library/Misc Helpers.txt"
 
-#include "EA Standard library\Chapter Definitions.txt"
+#include "EA Standard Library/Convo Background Definitions.txt"
 
-#include "EA Standard library\Music Definitions.txt"
+#include "EA Standard Library/Chapter Definitions.txt"
 
-#include "EA Standard library\End Of Chapter Helpers.txt"
+#include "EA Standard Library/Music Definitions.txt"
 
-#include "EA Standard library\Convo Helpers.txt"
+#include "EA Standard Library/End Of Chapter Helpers.txt"
 
-#include "EA Standard library\Tile Changes.txt"
+#include "EA Standard Library/Convo Helpers.txt"
 
-#include "EA Standard library\Trap Helpers.txt"
+#include "EA Standard Library/Tile Changes.txt"
 
-#include "EA Standard library\Random Monster Templates.txt"
+#include "EA Standard Library/Trap Helpers.txt"
 
+#include "EA Standard Library/Escape Point.txt"
 
-#ifndef NO_BACKWARDS_COMPATIBILITY
-#include "EA Standard library\Backward Compatibility.txt"
+#include "EA Standard Library/Conditional Helpers.txt"
+
+#include "EA Standard Library/Slots Helpers.txt"
+
+#include "EA Standard Library/Conditionals Backwards Compatability.txt"
+
+#include "EA Standard Library/Animation Setters.txt"
+
+#ifdef BACKWARDS_COMPATIBILITY
+#include "EA Standard Library/Backward Compatibility.txt"
 #endif
 
 #ifdef _FE7_
 #ifdef DISABLE_TUTORIALS
-#include "EA Standard library\FE7 Tutorial Disabler.txt"
+#include "EA Standard Library/FE7 Tutorial Disabler.txt"
 #endif
 #endif
 
+
 #ifdef _FE6_
 #ifndef _NO_FE6_DEFINITIONS_
-#include "EA Standard library\FE6 Definitions.txt"
+#ifdef BACKWARDS_COMPATIBILITY
+#include "EA Standard Library/FE6 Definitions_Old.txt"
+#else
+#include "EA Standard Library/FE6 Definitions.txt"
+#endif
 #endif
 #endif
 
 #ifdef _FE7_
 #ifndef _NO_FE7_DEFINITIONS_
-#include "EA Standard library\FE7 Definitions.txt"
+#ifdef BACKWARDS_COMPATIBILITY
+#include "EA Standard Library/FE7 Definitions_Old.txt"
+#else
+#include "EA Standard Library/FE7 Definitions.txt"
+#endif
 #endif
 #endif
 
 
 #ifdef _FE8_
 #ifndef _NO_FE8_DEFINITIONS_
-#include "EA Standard library\FE8 Definitions.txt"
+#include "EA Standard Library/FE8 Definitions.txt"
 #endif
 #endif
 

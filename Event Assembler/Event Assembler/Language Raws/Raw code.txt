@@ -13,3 +13,6 @@ SHORT, 0, 2, -game:FE6:FE7:FE8 -repeatable -priority:low -indexMode:8 -offsetMod
 BYTE, 0, 1, -game:FE6:FE7:FE8 -repeatable -priority:low -indexMode:8 -offsetMod:1
 ##Value
 	Value, 0, 1
+
+
+

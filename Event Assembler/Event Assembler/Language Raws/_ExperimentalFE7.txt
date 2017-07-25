@@ -1,10 +1,8 @@
 
 #Chapters: Prologue, 1, 2... 
-#After every MNCH code
 _0x1, 0x1, 4, -game:FE7 -indexMode:8
 
 #Chapters: 1, 2, 3...
-#Set's correct background for after chapter if unit dead
 _0x8, 0x8, 4, -game:FE7 -indexMode:8
 
 #Chapters: 6, 19x, 23, 15
@@ -24,7 +22,6 @@ _0x17, 0x17, 8, -game:FE7 -indexMode:8
 	Ptr, 4, 4, -pointer:unknown
 
 #Chapters: 26
-#Related to camera
 _0x21, 0x21, 4, -game:FE7 -indexMode:8
 
 #Chapters: 5, 6
@@ -34,13 +31,11 @@ _MOVE0x2C, 0x2C, 16, -game:FE7 -indexMode:8
 	Pointer2, 12, 4, -pointer:moveManual
 
 #Chapters: 20
-#Move/reposition before another move
 _0x30, 0x30, 12, -game:FE7 -indexMode:8
 	Value, 4, 4
 	Position, 8, 4, -coordinates:2
 
 #Chapters: 6, 15, 17x...
-#Load if alive
 _0x33, 0x33, 8, -game:FE7 -indexMode:8
 	Pointer, 4, 4, -pointer:unit
 
@@ -59,12 +54,10 @@ _IF0x4A, 0x4A, 8, -game:FE7 -indexMode:8
 	Conditional ID, 4, 2
 
 #Chapters: 9, 20, 24Lloyd, 28, F2
-#Used to skip text, sounds, music, fadings 
 _IF0x4B, 0x4B, 8, -game:FE7 -indexMode:8
     Conditional ID, 4, 1
 
 #Chapters: Prologue, 1, 2...
-#Used to skip text, sounds, music, fadings 
 _IFTT2, 0x51, 8, -game:FE7 -indexMode:8
 	Stuff, 2, 1
 	Conditional ID, 4, 1
@@ -82,7 +75,6 @@ _ASM0x5A, 0x5A, 8, -game:FE7 -indexMode:8
 	Ptr, 4, 4, -pointer:ASM
 
 #Chapters: 7x, 28, F1, F2
-#Silent map changes
 _0x61, 0x61,  4, -game:FE7 -indexMode:8
 	Value, 2, 2
 
@@ -202,12 +194,6 @@ _0xC3, 0xC3, 12, -game:FE7 -indexMode:8
 
 #World maps: 1, 2, 3...
 _0xCA, 0xCA, 4, -game:FE7 -indexMode:8
-
-#End of game events
-_0xD0, 0xDD, 16, -game:FE7 -indexMode:8
-	Value, 4, 4
-	Value, 8, 4
-	Value, 12, 4
 
 #Chapters: Final2
 _0xDC, 0xDC, 8, -game:FE7 -indexMode:8

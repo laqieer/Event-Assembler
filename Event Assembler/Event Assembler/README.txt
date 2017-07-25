@@ -319,9 +319,6 @@ V 9.10
 -Stopped MESSAGE, ERROR and WARNING codes from printing
  the name of the code.
 -Updated EA standard library to 2.14.
-V 9.11
--Removed ROMHackingCore.dll due to not being used.
--Updated EA standard library to 2.14. TODO
 
 -------------
 Future plans:

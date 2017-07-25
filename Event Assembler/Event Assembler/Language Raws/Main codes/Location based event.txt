@@ -21,6 +21,7 @@ LOCA, 5, 12, -priority:main -language:FE8:FE7:FE6 -indexMode:8
 	Position, 8, 2, -coordinates:2 -preferredBase:10
 	Command, 10, 2
 
+
 ##The location based event used for visiting villages.
 ##A nearby map change happens automatically after this event.
 VILL, 6, 12, -priority:main -language:FE8:FE7:FE6 -indexMode:8
@@ -84,6 +85,15 @@ DOOR, 8, 12, -priority:main -language:FE8:FE7:FE6 -indexMode:8
 	Event Pointer, 4, 4, -pointer
 	Position, 8, 2, -coordinates:2 -preferredBase:10
 	Command, 10, 2
+
+CHESRANDOM, 5, 12, -priority:main -language:FE8 -indexMode:8
+	ID, 2, 2
+##Pointer to the item/probability list for this chest.
+##The list is formatted as (Item ID,%chance) for each possible item and terminated by 00 00.
+##Chances for all items should add up to 100%.
+	Item List Pointer, 4, 4
+	Position, 8, 2, -coordinates:2 -preferredBase:10
+	20, 10, 2, -fixed
 
 LOCA, 0, 4, -priority:main -language:FE8:FE7:FE6 -end -indexMode:8 -noDisassembly
 	0, 0, 4, -fixed

@@ -11,6 +11,7 @@
 #ifdef _FE7_
 #define LynModeEnding "ENUT 0x83; LYN_END; _0x1; ASMC 0xB85D5; STAL 0; STAL 0"
 #define TheEnd "FADI 2; HIDEMAP; ASMC 0x7A8B9; THE_END; _0x1"
+#define RunCharacterEndings "CALL 0x08CC0F3C"
 #endif
 
 
