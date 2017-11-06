@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
 {
-    internal abstract class IncludeToolBase : INamed<string>, IParameterized, IDirective
+    internal abstract class ToolDirectiveBase : INamed<string>, IParameterized, IDirective
     {
         public abstract string Name { get; }
 
@@ -38,7 +38,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
 
         public CanCauseError Apply(string[] parameters, IDirectivePreprocessor host)
         {
-            string fileName = IO.IOHelpers.FindFile(host.Input.CurrentFile, GetFileName(parameters[0]));
+            string fileName = IO.IOHelpers.FindFile(host.Input.CurrentFile, GetToolFileName(parameters[0]));
 
             if (fileName.Length <= 0)
                 return CanCauseError.Error("Tool " + parameters[0] + " not found.");
@@ -98,7 +98,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
 
         public abstract CanCauseError ApplyIncludeTool(byte[] toolOutput, IDirectivePreprocessor host);
 
-        private string GetFileName(string toolName)
+        private string GetToolFileName(string toolName)
         {
             // TODO: maybe use some standard helper so we can be platform independant in code?
 

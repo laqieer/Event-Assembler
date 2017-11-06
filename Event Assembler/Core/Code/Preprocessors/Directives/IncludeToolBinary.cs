@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.Directives
 {
-    internal class IncludeToolBinary : IncludeToolBase
+    internal class IncludeToolBinary : ToolDirectiveBase
     {
         //Nintenlord.Event_Assembler.Core.IO.IOHelpers.FindFile
         public override string Name
