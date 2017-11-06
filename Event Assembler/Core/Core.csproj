@@ -60,10 +60,11 @@
     <Compile Include="Code\Language\Expression\Tree\ArithmeticShiftRight.cs" />
     <Compile Include="Code\Language\Parser\ParseHelpers.cs" />
     <Compile Include="Code\Preprocessors\Directives\EasterEgg.cs" />
+    <Compile Include="Code\Preprocessors\Directives\IncludeToolBase.cs" />
     <Compile Include="Code\Preprocessors\Directives\IncludeToolEvent.cs" />
     <Compile Include="Code\Preprocessors\Directives\IncludeToolEventAlias.cs" />
     <Compile Include="Code\Preprocessors\Directives\RunExternal.cs" />
-    <Compile Include="Code\Preprocessors\Directives\IncludeExternal.cs" />
+    <Compile Include="Code\Preprocessors\Directives\IncludeToolBinary.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="HighlightingHelper.cs" />
     <Compile Include="IPointerMaker.cs" />
