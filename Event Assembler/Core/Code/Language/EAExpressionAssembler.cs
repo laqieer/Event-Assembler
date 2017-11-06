@@ -12,7 +12,6 @@ using Nintenlord.Event_Assembler.Core.Code.Templates;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.IO;
-using Nintenlord.IO.Scanners;
 using Nintenlord.Parser;
 using Nintenlord.Utility;
 using Nintenlord.Utility.Primitives;
@@ -61,7 +60,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       if (!tokenScanner.MoveNext())
         return;
       Match<Token> match;
-      IExpression<int> expression = this.parser.Parse((IScanner<Token>) tokenScanner, out match);
+      IExpression<int> expression = parser.Parse(tokenScanner, out match);
       if (!match.Success)
         log.AddError(match.Error);
       else if (!tokenScanner.IsAtEnd && tokenScanner.Current.Type != TokenType.EndOfStream)
@@ -70,20 +69,36 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       }
       else
       {
-        this.currentOffset = (int) output.BaseStream.Position;
-        foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in this.FirstPass(expression, (ScopeStructure<int>) null)) 
+        this.currentOffset = (int)output.BaseStream.Position;
+        foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in FirstPass(expression, null))
         {
-            int codeLength = tuple.Item3.GetLengthBytes(tuple.Item1.Parameters.ToArray());
-            if (isProtected(tuple.Item2, codeLength)) //Offset, length
-            {
-                log.AddError(tuple.Item1.Position.ToString() + ": Attempting to modify protected memory at " + tuple.Item2.ToHexString("$") + " with code of length " + codeLength);
-            } else {
-                this.codeOffsets.Add(tuple.Item1, Tuple.Create<int, ICodeTemplate>(tuple.Item2, tuple.Item3));
-            }
+          int codeLength = tuple.Item3.GetLengthBytes(tuple.Item1.Parameters.ToArray());
+          if (isProtected(tuple.Item2, codeLength)) //Offset, length
+          {
+            log.AddError(tuple.Item1.Position.ToString() + ": Attempting to modify protected memory at " + tuple.Item2.ToHexString("$") + " with code of length " + codeLength);
+          }
+          else
+          {
+            this.codeOffsets.Add(tuple.Item1, Tuple.Create(tuple.Item2, tuple.Item3));
+          }
         }
-        this.currentOffset = (int) output.BaseStream.Position;
+        this.currentOffset = (int)output.BaseStream.Position;
         this.offsetHistory.Clear();
-        this.SecondPass(output, expression, (ScopeStructure<int>) null);
+        this.SecondPass(output, expression, null);
+      }
+    }
+
+    public IEnumerable<KeyValuePair<string, int>> GetGlobalSymbols()
+    {
+      foreach (ScopeStructure<int> scope in scopeStructures.Values)
+      {
+        if (!scope.IsGlobalScope())
+          continue;
+
+        foreach (KeyValuePair<string, IExpression<int>> pair in scope.GetSymbols())
+        {
+          yield return new KeyValuePair<string, int>(pair.Key, ((ValueExpression<int>)pair.Value).Value);
+        }
       }
     }
 
@@ -92,48 +107,59 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       switch (expression.Type)
       {
         case EAExpressionType.Scope:
-          Scope<int> newScope = (Scope<int>) expression;
+          Scope<int> newScope = (Scope<int>)expression;
           ScopeStructure<int> newStr = new ScopeStructure<int>(scope);
-          this.scopeStructures[(IExpression<int>) newScope] = newStr;
+          scopeStructures[newScope] = newStr;
+
           foreach (IExpression<int> child in expression.GetChildren())
-          {
-            foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in this.FirstPass(child, newStr))
+            foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in FirstPass(child, newStr))
               yield return tuple;
-          }
+
           break;
+
         case EAExpressionType.Code:
-                    Code<int> code = expression as Code<int>;
-          if (code.IsEmpty || this.HandleBuiltInCodeFirstPass(code, scope))
+          Code<int> code = expression as Code<int>;
+
+          if (code.IsEmpty || HandleBuiltInCodeFirstPass(code, scope))
             break;
-          Nintenlord.Event_Assembler.Core.Code.Language.Types.Type[] paramTypes = ((IEnumerable<IExpression<int>>) code.Parameters).Select<IExpression<int>, Nintenlord.Event_Assembler.Core.Code.Language.Types.Type>(new Func<IExpression<int>, Nintenlord.Event_Assembler.Core.Code.Language.Types.Type>(Nintenlord.Event_Assembler.Core.Code.Language.Types.Type.GetType<int>)).ToArray<Nintenlord.Event_Assembler.Core.Code.Language.Types.Type>();
+
+          Types.Type[] paramTypes = ((IEnumerable<IExpression<int>>)code.Parameters).Select(new Func<IExpression<int>, Types.Type>(Types.Type.GetType<int>)).ToArray();
+
           CanCauseError<ICodeTemplate> templateError = this.storer.FindTemplate(code.CodeName.Name, paramTypes);
+
           if (templateError.CausedError)
           {
-            this.AddError<int, ICodeTemplate>((IExpression<int>) code, templateError);
+            AddError<int, ICodeTemplate>((IExpression<int>)code, templateError);
             break;
           }
+
           ICodeTemplate template = templateError.Result;
-          int oldOffset = this.currentOffset;
-          this.currentOffset += template.GetLengthBytes(((IEnumerable<IExpression<int>>) code.Parameters).ToArray<IExpression<int>>());
+
+          int oldOffset = currentOffset;
+          currentOffset += template.GetLengthBytes(((IEnumerable<IExpression<int>>)code.Parameters).ToArray());
+
           yield return Tuple.Create(code, oldOffset, template);
           break;
+
         case EAExpressionType.Labeled:
-          scope.AddNewSymbol(((LabeledExpression<int>) expression).LabelName, (IExpression<int>) new ValueExpression<int>(this.currentOffset, new FilePosition()));
+          scope.AddNewSymbol(((LabeledExpression<int>)expression).LabelName, (IExpression<int>)new ValueExpression<int>(this.currentOffset, new FilePosition()));
           foreach (IExpression<int> child in expression.GetChildren())
           {
             foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in this.FirstPass(child, scope))
               yield return tuple;
           }
           break;
+
         case EAExpressionType.Assignment:
-          Assingment<int> assingment = (Assingment<int>) expression;
+          Assingment<int> assingment = (Assingment<int>)expression;
           if (assingment.VariableCount != 0)
           {
-            this.AddError<int>((IExpression<int>) assingment, "Assignments with parameters aren't supported.");
+            AddError(assingment, "Assignments with parameters aren't supported.");
             break;
           }
           scope.AddNewSymbol(assingment.Name.Name, assingment.Result);
           break;
+
         default:
           throw new ArgumentException("Badly formed tree.");
       }
@@ -149,26 +175,26 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       }
       else if (expression.Type == EAExpressionType.Code)
       {
-                Code<int> code = expression as Code<int>;
+        Code<int> code = expression as Code<int>;
         Tuple<int, ICodeTemplate> tupple;
         if (code.IsEmpty || this.HandleBuiltInCodeSecondPass(code, parentScope) || !this.codeOffsets.TryGetValue(code, out tupple))
           return;
         this.currentOffset = tupple.Item1;
-        if (tupple.Apply<bool, int, ICodeTemplate>((Func<int, ICodeTemplate, bool>) ((x, y) => x % y.OffsetMod != 0)))
-          this.AddError<int>((IExpression<int>) code, "Code {0}'s offset {1} is not divisible by {2}", (object) tupple.Item2.Name, (object) this.currentOffset.ToHexString("$"), (object) tupple.Item2.OffsetMod);
-        if (output.BaseStream.Position != (long) this.currentOffset)
+        if (tupple.Apply((Func<int, ICodeTemplate, bool>)((x, y) => x % y.OffsetMod != 0)))
+          this.AddError<int>((IExpression<int>)code, "Code {0}'s offset {1} is not divisible by {2}", (object)tupple.Item2.Name, (object)this.currentOffset.ToHexString("$"), (object)tupple.Item2.OffsetMod);
+        if (output.BaseStream.Position != (long)this.currentOffset)
         {
           if (!output.BaseStream.CanSeek)
-            this.AddError<int>((IExpression<int>) code, "Stream cannot be seeked.");
+            this.AddError<int>((IExpression<int>)code, "Stream cannot be seeked.");
           else
-            output.BaseStream.Seek((long) this.currentOffset, SeekOrigin.Begin);
+            output.BaseStream.Seek((long)this.currentOffset, SeekOrigin.Begin);
         }
-        CanCauseError<byte[]> data = tupple.Item2.GetData(code.Parameters, (Func<string, int?>) (x => this.GetSymbolVal(parentScope, x)));
+        CanCauseError<byte[]> data = tupple.Item2.GetData(code.Parameters, (Func<string, int?>)(x => this.GetSymbolVal(parentScope, x)));
         if (data.CausedError)
-          this.AddError<int, byte[]>((IExpression<int>) code, data);
+          this.AddError<int, byte[]>((IExpression<int>)code, data);
         else
           output.Write(data.Result);
-        this.currentOffset = (int) output.BaseStream.Position;
+        this.currentOffset = (int)output.BaseStream.Position;
       }
       else if (expression.Type == EAExpressionType.Labeled)
       {
@@ -184,8 +210,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       switch (exp.Type)
       {
         case EAExpressionType.Code:
-                    Code<int> code = exp as Code<int>;
-          return code.CodeName.Name + ((IEnumerable<IExpression<int>>) code.Parameters).Select( (x => this.ExpressionToString(x, scope))).ToElementWiseString<string>(" ", " ", "");
+          Code<int> code = exp as Code<int>;
+          return code.CodeName.Name + ((IEnumerable<IExpression<int>>)code.Parameters).Select((x => this.ExpressionToString(x, scope))).ToElementWiseString<string>(" ", " ", "");
         case EAExpressionType.XOR:
         case EAExpressionType.AND:
         case EAExpressionType.OR:
@@ -249,39 +275,44 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
           }
           return true;
         case offsetPusher:
-            if (code.ParameterCount.IsInRange(0, 0))
-            {
-                this.offsetHistory.Push(this.currentOffset);
-            }
-            return true;
+          if (code.ParameterCount.IsInRange(0, 0))
+          {
+            this.offsetHistory.Push(this.currentOffset);
+          }
+          return true;
         case offsetPopper:
-            if (code.ParameterCount.IsInRange(0, 0))
-            {
-                if(this.offsetHistory.Count>0)
-                    this.currentOffset = this.offsetHistory.Pop();
-            }
-            return true;
+          if (code.ParameterCount.IsInRange(0, 0))
+          {
+            if (this.offsetHistory.Count > 0)
+              this.currentOffset = this.offsetHistory.Pop();
+          }
+          return true;
         case assertion:
-            return true;
+          return true;
         case protectCode:
-            if (code.ParameterCount.IsInRange(1,1))
+          if (code.ParameterCount.IsInRange(1, 1))
+          {
+            CanCauseError<int> canCauseError = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
+            if (!canCauseError.CausedError)
+              this.protectedRegions.Add(new Tuple<int, int>(canCauseError.Result, 4));
+          }
+          else if (code.ParameterCount.IsInRange(2, 2))
+          {
+            CanCauseError<int> firstParam = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
+            CanCauseError<int> secondParam = Folding.Fold(code[1], (x => this.GetSymbolVal(scope, x)));
+            if (!firstParam.CausedError && !secondParam.CausedError)
             {
-                CanCauseError<int> canCauseError = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
-                if (!canCauseError.CausedError)
-                    this.protectedRegions.Add(new Tuple<int,int>(canCauseError.Result,4));
-            } else if (code.ParameterCount.IsInRange(2,2)) {
-                CanCauseError<int> firstParam = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
-                CanCauseError<int> secondParam = Folding.Fold(code[1], (x => this.GetSymbolVal(scope, x)));
-                if (!firstParam.CausedError && !secondParam.CausedError) {
-                    if(firstParam.Result < secondParam.Result)
-                        this.protectedRegions.Add(new Tuple<int,int>(firstParam.Result, secondParam.Result - firstParam.Result));
-                    else
-                        this.log.AddWarning("Protected region not valid (end offset not after start offset). No region protected.");
-                }
-            } else {
-                this.AddNotCorrectParameters<int>(code, 2);
+              if (firstParam.Result < secondParam.Result)
+                this.protectedRegions.Add(new Tuple<int, int>(firstParam.Result, secondParam.Result - firstParam.Result));
+              else
+                this.log.AddWarning("Protected region not valid (end offset not after start offset). No region protected.");
             }
-            return true;
+          }
+          else
+          {
+            this.AddNotCorrectParameters<int>(code, 2);
+          }
+          return true;
         default:
           return false;
       }
@@ -292,13 +323,13 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       switch (code.CodeName.Name)
       {
         case messagePrinterCode:
-          this.log.AddMessage(this.ExpressionToString((IExpression<int>) code, scope).Substring(code.CodeName.Name.Length + 1));
+          this.log.AddMessage(this.ExpressionToString((IExpression<int>)code, scope).Substring(code.CodeName.Name.Length + 1));
           return true;
         case errorPrinterCode:
-          this.log.AddError(this.ExpressionToString((IExpression<int>) code, scope).Substring(code.CodeName.Name.Length + 1));
+          this.log.AddError(this.ExpressionToString((IExpression<int>)code, scope).Substring(code.CodeName.Name.Length + 1));
           return true;
         case warningPrinterCode:
-          this.log.AddWarning(this.ExpressionToString((IExpression<int>) code, scope).Substring(code.CodeName.Name.Length + 1));
+          this.log.AddWarning(this.ExpressionToString((IExpression<int>)code, scope).Substring(code.CodeName.Name.Length + 1));
           return true;
         case currentOffsetCode:
         case offsetAligner:
@@ -312,7 +343,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
             {
               CanCauseError<int> error = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
               if (error.CausedError)
-                this.AddError<int, int>((IExpression<int>) code, error);
+                this.AddError<int, int>((IExpression<int>)code, error);
               else
                 this.currentOffset = this.currentOffset.ToMod(error.Result);
             }
@@ -331,8 +362,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
             {
               CanCauseError<int> error = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
               if (error.CausedError)
-                this.AddError<int, int>((IExpression<int>) code, error);
-              else if(error.Result >= 0x2000000)
+                this.AddError<int, int>((IExpression<int>)code, error);
+              else if (error.Result >= 0x2000000)
                 this.AddError((IExpression<int>)code, "Tried to set offset to " + error.Result.ToHexString("0x"));
               else
                 this.currentOffset = error.Result;
@@ -342,55 +373,59 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
             this.AddNotCorrectParameters<int>(code, 1);
           return true;
         case offsetPusher:
-            if (code.ParameterCount.IsInRange(0, 0))
-                this.offsetHistory.Push(this.currentOffset);
-            else
-                this.AddNotCorrectParameters<int>(code, 0);
-            return true;
+          if (code.ParameterCount.IsInRange(0, 0))
+            this.offsetHistory.Push(this.currentOffset);
+          else
+            this.AddNotCorrectParameters<int>(code, 0);
+          return true;
         case offsetPopper:
-            if (code.ParameterCount.IsInRange(0, 0))
-            {
-                if (this.offsetHistory.Count > 0)
-                    this.currentOffset = this.offsetHistory.Pop();
-                else
-                    this.AddError((IExpression<int>)code, "Tried to pop while offset stack was empty.");
-            } else
-                this.AddNotCorrectParameters<int>(code, 0);
-            return true;
+          if (code.ParameterCount.IsInRange(0, 0))
+          {
+            if (this.offsetHistory.Count > 0)
+              this.currentOffset = this.offsetHistory.Pop();
+            else
+              this.AddError((IExpression<int>)code, "Tried to pop while offset stack was empty.");
+          }
+          else
+            this.AddNotCorrectParameters<int>(code, 0);
+          return true;
         case assertion:
-            if (code.ParameterCount.IsInRange(1, 1))
+          if (code.ParameterCount.IsInRange(1, 1))
+          {
+            if (code[0] is ExpressionList<int>)
             {
-                if (code[0] is ExpressionList<int>) {
-                this.AddNotAtomTypeParameter<int>(code[0]);
-                }
-                else {
-                CanCauseError<int> error = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
-                if (error.CausedError)
-                    this.AddError<int, int>((IExpression<int>) code, error);
-                else if(error.Result < 0)
-                    this.AddError(code, "Assertion failed.");
-                }
-            } else
-                this.AddNotCorrectParameters<int>(code, 1);
-            return true;
-            
+              this.AddNotAtomTypeParameter<int>(code[0]);
+            }
+            else
+            {
+              CanCauseError<int> error = Folding.Fold(code[0], (x => this.GetSymbolVal(scope, x)));
+              if (error.CausedError)
+                this.AddError<int, int>((IExpression<int>)code, error);
+              else if (error.Result < 0)
+                this.AddError(code, "Assertion failed.");
+            }
+          }
+          else
+            this.AddNotCorrectParameters<int>(code, 1);
+          return true;
+
         case protectCode:
-            return true;
+          return true;
         default:
           return false;
       }
     }
-    
-    private bool isProtected(int offset, int length) 
+
+    private bool isProtected(int offset, int length)
     {
-        foreach(Tuple<int, int> protectedRegion in protectedRegions)
-        {
-            //They intersect if the last offset in the given region is after the start of this one
-            //and the first offset in the given region is before the last of this one
-            if(offset + length > protectedRegion.Item1 && offset < protectedRegion.Item1 + protectedRegion.Item2)
-                return true;
-        }
-        return false;
+      foreach (Tuple<int, int> protectedRegion in protectedRegions)
+      {
+        //They intersect if the last offset in the given region is after the start of this one
+        //and the first offset in the given region is before the last of this one
+        if (offset + length > protectedRegion.Item1 && offset < protectedRegion.Item1 + protectedRegion.Item2)
+          return true;
+      }
+      return false;
     }
 
     private void AddError<T, TResult>(IExpression<T> code, CanCauseError<TResult> error)
@@ -419,12 +454,12 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
     private void AddNotCorrectParameters<T>(Nintenlord.Event_Assembler.Core.Code.Language.Expression.Code<T> code, int paramCount)
     {
-      this.log.AddError("{3}: Code {0} doesn't have {2} parameters, but has {1} parameters", (object) code.CodeName, (object) paramCount, (object) code.Parameters.Length, (object) code.Position);
+      this.log.AddError("{3}: Code {0} doesn't have {2} parameters, but has {1} parameters", (object)code.CodeName, (object)paramCount, (object)code.Parameters.Length, (object)code.Position);
     }
 
     private void AddNotCorrectParameters<T>(Nintenlord.Event_Assembler.Core.Code.Language.Expression.Code<T> code, int paramMin, int paramMax)
     {
-      this.log.AddError("{4}: Code {0} doesn't have {3} parameters, but has {1}-{2} parameters", (object) code.CodeName, (object) paramMin, (object) paramMax, (object) code.Parameters.Length, (object) code.Position);
+      this.log.AddError("{4}: Code {0} doesn't have {3} parameters, but has {1}-{2} parameters", (object)code.CodeName, (object)paramMin, (object)paramMax, (object)code.Parameters.Length, (object)code.Position);
     }
   }
 }

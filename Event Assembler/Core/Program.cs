@@ -17,6 +17,7 @@ using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.IO;
 using Nintenlord.Parser;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,17 +56,18 @@ namespace Nintenlord.Event_Assembler.Core
       string rawsExtension = ".txt";
       bool isDirectory = true;
       bool addEndGuards = false;
-      string inputFile = (string) null;
-      string outputFile = (string) null;
-      string errorFile = (string) null;
-      string docHeader = (string) null;
-      string docFooter = (string) null;
-      Program.HandleFlags(flags, (ILog) writerMessageLog, ref rawsFolder, ref rawsExtension, ref isDirectory, ref addEndGuards, ref inputFile, ref outputFile, ref errorFile, ref docHeader, ref docFooter);
-      StreamWriter streamWriter = (StreamWriter) null;
+      string inputFile = null;
+      string outputFile = null;
+      string errorFile = null;
+      string docHeader = null;
+      string docFooter = null;
+      string symbolOutputFile = null;
+      Program.HandleFlags(flags, (ILog)writerMessageLog, ref rawsFolder, ref rawsExtension, ref isDirectory, ref addEndGuards, ref inputFile, ref outputFile, ref errorFile, ref docHeader, ref docFooter, ref symbolOutputFile);
+      StreamWriter streamWriter = (StreamWriter)null;
       if (errorFile != null)
       {
         streamWriter = new StreamWriter(errorFile);
-        writerMessageLog.Writer = (TextWriter) streamWriter;
+        writerMessageLog.Writer = (TextWriter)streamWriter;
       }
       if (Program.stringComparer.Compare(stringList[0], "doc") == 0)
       {
@@ -80,7 +82,7 @@ namespace Nintenlord.Event_Assembler.Core
           Program.LoadCodes(rawsFolder, rawsExtension, isDirectory, false);
           try
           {
-            HighlightingHelper.GetProgrammersNotepadlanguageDoc((IEnumerable<EACodeLanguage>) Program.languages.Values, outputFile);
+            HighlightingHelper.GetProgrammersNotepadlanguageDoc((IEnumerable<EACodeLanguage>)Program.languages.Values, outputFile);
           }
           catch (Exception ex)
           {
@@ -93,7 +95,7 @@ namespace Nintenlord.Event_Assembler.Core
           if (Program.languages.ContainsKey(stringList[1]))
           {
             if (Program.stringComparer.Compare(stringList[0], "A") == 0)
-              Program.Assemble(inputFile, outputFile, stringList[1], (ILog) writerMessageLog);
+              Program.Assemble(inputFile, outputFile, stringList[1], (ILog)writerMessageLog, symbolOutputFile);
             else if (Program.stringComparer.Compare(stringList[0], "D") == 0)
             {
               DisassemblyMode result1;
@@ -109,7 +111,7 @@ namespace Nintenlord.Event_Assembler.Core
                   else if (result1 == DisassemblyMode.Block && (!stringList[5].TryGetValue(out size) || size < 0))
                     writerMessageLog.AddError(stringList[5] + " is not a valid size");
                   else
-                    Program.Disassemble(inputFile, outputFile, stringList[1], addEndGuards, result1, offset, result2, size, (ILog) writerMessageLog);
+                    Program.Disassemble(inputFile, outputFile, stringList[1], addEndGuards, result1, offset, result2, size, (ILog)writerMessageLog);
                 }
                 else
                   writerMessageLog.AddError(stringList[3] + " is not a valid number");
@@ -126,13 +128,15 @@ namespace Nintenlord.Event_Assembler.Core
       }
       writerMessageLog.PrintAll();
       writerMessageLog.Clear();
+
       if (streamWriter == null)
         return;
+
       streamWriter.Dispose();
 
-        }
+    }
 
-    private static void HandleFlags(List<string> flags, ILog messageLog, ref string rawsFolder, ref string rawsExtension, ref bool isDirectory, ref bool addEndGuards, ref string inputFile, ref string outputFile, ref string errorFile, ref string docHeader, ref string docFooter)
+    private static void HandleFlags(List<string> flags, ILog messageLog, ref string rawsFolder, ref string rawsExtension, ref bool isDirectory, ref bool addEndGuards, ref string inputFile, ref string outputFile, ref string errorFile, ref string docHeader, ref string docFooter, ref string symbolOutputFile)
     {
       foreach (string flag in flags)
       {
@@ -186,13 +190,23 @@ namespace Nintenlord.Event_Assembler.Core
             messageLog.AddError("File " + str2 + " doesn't exist.");
             continue;
           case "output":
-            if (Program.IsValidFileName(str2))
+            if (IsValidFileName(str2))
             {
               outputFile = str2;
               continue;
             }
             messageLog.AddError("Name " + str2 + " isn't valid for a file.");
             continue;
+
+          case "symOutput":
+            if (IsValidFileName(str2))
+            {
+              symbolOutputFile = str2;
+              continue;
+            }
+            messageLog.AddError("Name " + str2 + " isn't valid for a file.");
+            continue;
+
           case "error":
             if (Program.IsValidFileName(str2))
             {
@@ -229,13 +243,13 @@ namespace Nintenlord.Event_Assembler.Core
       return true;
     }
 
-    public static void Assemble(string inputFile, string outputFile, string languageName, ILog messageLog)
+    public static void Assemble(string inputFile, string outputFile, string languageName, ILog messageLog, string symbolOutputFile)
     {
       TextReader input;
       bool flag;
       if (inputFile != null)
       {
-        input = (TextReader) File.OpenText(inputFile);
+        input = (TextReader)File.OpenText(inputFile);
         flag = true;
       }
       else
@@ -246,19 +260,19 @@ namespace Nintenlord.Event_Assembler.Core
       EACodeLanguage language = Program.languages[languageName];
       if (outputFile != null)
       {
-        if (File.Exists(outputFile) && File.GetAttributes(outputFile).HasFlag((Enum) FileAttributes.ReadOnly))
+        if (File.Exists(outputFile) && File.GetAttributes(outputFile).HasFlag((Enum)FileAttributes.ReadOnly))
         {
           messageLog.AddError("outputFile is read-only.");
         }
         else
         {
           ChangeStream changeStream = new ChangeStream();
-          using (BinaryWriter output = new BinaryWriter((Stream) changeStream))
+          using (BinaryWriter output = new BinaryWriter((Stream)changeStream))
           {
-            Program.Assemble(language, input, output, messageLog);
+            Program.Assemble(language, input, output, messageLog, symbolOutputFile);
             if (messageLog.ErrorCount == 0)
             {
-              using (Stream stream = (Stream) File.OpenWrite(outputFile))
+              using (Stream stream = (Stream)File.OpenWrite(outputFile))
                 changeStream.WriteToFile(stream);
             }
           }
@@ -275,7 +289,7 @@ namespace Nintenlord.Event_Assembler.Core
     {
       if (!File.Exists(inputFile))
         messageLog.AddError("File " + inputFile + " doesn't exist.");
-      else if (File.Exists(outputFile) && File.GetAttributes(outputFile).HasFlag((Enum) FileAttributes.ReadOnly))
+      else if (File.Exists(outputFile) && File.GetAttributes(outputFile).HasFlag((Enum)FileAttributes.ReadOnly))
       {
         messageLog.AddError("Output cannot be written to. It is read-only.");
       }
@@ -318,7 +332,7 @@ namespace Nintenlord.Event_Assembler.Core
             streamWriter.WriteLine(Program.Frame(lines, "//", 1));
             streamWriter.WriteLine();
             foreach (string[] strArray in strArrays)
-              streamWriter.WriteLine(((IEnumerable<string>) strArray).ToElementWiseString<string>(" ", "", ""));
+              streamWriter.WriteLine(((IEnumerable<string>)strArray).ToElementWiseString<string>(" ", "", ""));
           }
         }
       }
@@ -326,14 +340,14 @@ namespace Nintenlord.Event_Assembler.Core
 
     public static void LoadCodes(string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
     {
-      Program.languages = (IDictionary<string, EACodeLanguage>) new Dictionary<string, EACodeLanguage>();
-      LanguageProcessor languageProcessor = new LanguageProcessor(collectDocCodes, (IComparer<ICodeTemplate>) new TemplateComparer(), Program.stringComparer);
-      IPointerMaker pointerMaker = (IPointerMaker) new GBAPointerMaker();
+      Program.languages = (IDictionary<string, EACodeLanguage>)new Dictionary<string, EACodeLanguage>();
+      LanguageProcessor languageProcessor = new LanguageProcessor(collectDocCodes, (IComparer<ICodeTemplate>)new TemplateComparer(), Program.stringComparer);
+      IPointerMaker pointerMaker = (IPointerMaker)new GBAPointerMaker();
       if (isDirectory)
         languageProcessor.ProcessCode(rawsFolder, extension);
       else
         languageProcessor.ProcessCode(rawsFolder);
-      foreach (KeyValuePair<string, ICodeTemplateStorer> language in (IEnumerable<KeyValuePair<string, ICodeTemplateStorer>>) languageProcessor.Languages)
+      foreach (KeyValuePair<string, ICodeTemplateStorer> language in (IEnumerable<KeyValuePair<string, ICodeTemplateStorer>>)languageProcessor.Languages)
       {
         Tuple<string, List<Priority>>[][] pointerList;
         switch (language.Key)
@@ -358,7 +372,7 @@ namespace Nintenlord.Event_Assembler.Core
 
     public static void MakeDoc(string output, string rawsFolder, string extension, bool isDirectory, string header, string footer)
     {
-      LanguageProcessor languageProcessor = new LanguageProcessor(true, (IComparer<ICodeTemplate>) new TemplateComparer(), Program.stringComparer);
+      LanguageProcessor languageProcessor = new LanguageProcessor(true, (IComparer<ICodeTemplate>)new TemplateComparer(), Program.stringComparer);
       GBAPointerMaker gbaPointerMaker = new GBAPointerMaker();
       if (isDirectory)
         languageProcessor.ProcessCode(rawsFolder, extension);
@@ -371,7 +385,7 @@ namespace Nintenlord.Event_Assembler.Core
           text.WriteLine(File.ReadAllText(header));
           text.WriteLine();
         }
-        languageProcessor.WriteDocs((TextWriter) text);
+        languageProcessor.WriteDocs((TextWriter)text);
         if (footer == null)
           return;
         text.WriteLine(File.ReadAllText(footer));
@@ -385,13 +399,13 @@ namespace Nintenlord.Event_Assembler.Core
       List<string> stringList = new List<string>();
       stringList.Add("_" + game + "_");
       stringList.Add("_EA_");
-      using (IPreprocessor preprocessor = (IPreprocessor) new Preprocessor(messageLog))
+      using (IPreprocessor preprocessor = (IPreprocessor)new Preprocessor(messageLog))
       {
         preprocessor.AddReserved(eaCodeLanguage.GetCodeNames());
-        preprocessor.AddDefined((IEnumerable<string>) stringList.ToArray());
+        preprocessor.AddDefined((IEnumerable<string>)stringList.ToArray());
         using (StreamReader streamReader = File.OpenText(originalFile))
         {
-          using (IInputStream inputStream = (IInputStream) new PreprocessingInputStream((TextReader) streamReader, preprocessor))
+          using (IInputStream inputStream = (IInputStream)new PreprocessingInputStream((TextReader)streamReader, preprocessor))
           {
             StringWriter stringWriter = new StringWriter();
             while (true)
@@ -408,35 +422,59 @@ namespace Nintenlord.Event_Assembler.Core
       }
     }
 
-    private static void Assemble(EACodeLanguage language, TextReader input, BinaryWriter output, ILog log)
+    private static void Assemble(EACodeLanguage language, TextReader input, BinaryWriter output, ILog log, string symbolOutputFile)
     {
-      List<string> stringList = new List<string>();
-      stringList.Add("_" + language.Name + "_");
-      stringList.Add("_EA_");
-      using (IPreprocessor preprocessor = (IPreprocessor) new Preprocessor(log))
+      using (IPreprocessor preprocessor = new Preprocessor(log))
       {
         preprocessor.AddReserved(language.GetCodeNames());
-        preprocessor.AddDefined((IEnumerable<string>) stringList.ToArray());
-        using (IInputStream inputStream = (IInputStream) new PreprocessingInputStream(input, preprocessor))
-          new EAExpressionAssembler(language.CodeStorage, (IParser<Token, IExpression<int>>) new TokenParser<int>(new Func<string, int>(StringExtensions.GetValue))).Assemble((IPositionableInputStream) inputStream, output, log);
+        preprocessor.AddDefined(new string[] { "_" + language.Name + "_", "_EA_" });
+
+        using (IInputStream inputStream = new PreprocessingInputStream(input, preprocessor))
+        {
+          EAExpressionAssembler assembler = new EAExpressionAssembler(language.CodeStorage, new TokenParser<int>(new Func<string, int>(StringExtensions.GetValue)));
+
+          assembler.Assemble(inputStream, output, log);
+
+          try
+          {
+            // Outputting global symbols to another file
+
+            if (symbolOutputFile != null)
+              using (FileStream fileStream = File.OpenWrite(symbolOutputFile))
+              using (StreamWriter symOut = new StreamWriter(fileStream))
+                foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
+                  symOut.WriteLine("{0}={1}", symbol.Key, symbol.Value.ToHexString("$"));
+          }
+          catch (Exception e)
+          {
+            log.AddError(e.ToString());
+          }
+        }
       }
     }
 
     private static string Frame(string[] lines, string toFrameWith, int padding)
     {
       int num = 0;
+
       for (int index = 0; index < lines.Length; ++index)
         num = Math.Max(num, lines[index].Length);
+
       string str1 = toFrameWith.Repeat(padding * 2 + toFrameWith.Length * 2 + num);
       string str2 = toFrameWith + " ".Repeat(padding * 2 + num) + toFrameWith;
       string str3 = " ".Repeat(padding);
+
       StringBuilder stringBuilder = new StringBuilder();
+
       stringBuilder.AppendLine(str1);
       stringBuilder.AppendLine(str2);
+
       foreach (string line in lines)
         stringBuilder.AppendLine(toFrameWith + str3 + line.PadRight(num, ' ') + str3 + toFrameWith);
+
       stringBuilder.AppendLine(str2);
       stringBuilder.AppendLine(str1);
+
       return stringBuilder.ToString();
     }
   }

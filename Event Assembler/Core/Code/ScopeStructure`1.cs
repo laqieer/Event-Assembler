@@ -36,7 +36,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
         return CanCauseError<IExpression<T>>.NoError(result);
       if (this.ParentScope != null)
         return this.ParentScope.GetSymbolValue(symbol);
-      return CanCauseError<IExpression<T>>.Error("Symbol {0} not defined", (object) symbol);
+      return CanCauseError<IExpression<T>>.Error("Symbol {0} not defined", (object)symbol);
     }
 
     public CanCauseError AddNewSymbol(string symbol, IExpression<T> value)
@@ -47,9 +47,19 @@ namespace Nintenlord.Event_Assembler.Core.Code
       return CanCauseError.NoError;
     }
 
+    public bool IsGlobalScope()
+    {
+      return ParentScope == null;
+    }
+
+    public IEnumerable<KeyValuePair<string, IExpression<T>>> GetSymbols()
+    {
+      return definedSymbols;
+    }
+
     public IEnumerable<ScopeStructure<T>> GetChildren()
     {
-      return (IEnumerable<ScopeStructure<T>>) this.childScopes;
+      return (IEnumerable<ScopeStructure<T>>)this.childScopes;
     }
   }
 }
