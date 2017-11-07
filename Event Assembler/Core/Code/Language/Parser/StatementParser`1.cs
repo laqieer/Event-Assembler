@@ -130,11 +130,9 @@ label_9:
       return (IExpression<T>) new Code<T>(name, parameters);
     }
 
-    private static bool IsStatementEnding(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType type)
+    private static bool IsStatementEnding(TokenType type)
     {
-      if (type != Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.CodeEnder)
-        return type == Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.NewLine;
-      return true;
+      return type == TokenType.CodeEnder || type == TokenType.NewLine || type == TokenType.LeftCurlyBracket || type == TokenType.RightCurlyBracket;
     }
   }
 }
