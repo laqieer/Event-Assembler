@@ -440,10 +440,15 @@ namespace Nintenlord.Event_Assembler.Core
             // Outputting global symbols to another file
 
             if (symbolOutputFile != null)
+            {
+              if (File.Exists(symbolOutputFile))
+                File.Delete(symbolOutputFile);
+
               using (FileStream fileStream = File.OpenWrite(symbolOutputFile))
-              using (StreamWriter symOut = new StreamWriter(fileStream))
-                foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
-                  symOut.WriteLine("{0}={1}", symbol.Key, symbol.Value.ToHexString("$"));
+                using (StreamWriter symOut = new StreamWriter(fileStream))
+                  foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
+                    symOut.WriteLine("{0}={1}", symbol.Key, symbol.Value.ToHexString("$"));
+            }
           }
           catch (Exception e)
           {
