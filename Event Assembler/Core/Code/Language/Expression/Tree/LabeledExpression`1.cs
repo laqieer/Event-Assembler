@@ -49,7 +49,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Expression.Tree
 
     public IEnumerable<IExpression<T>> GetChildren()
     {
-      yield return this.labeledExpression;
+      if (labeledExpression != null)
+        yield return labeledExpression;
     }
   }
 }

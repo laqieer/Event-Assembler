@@ -18,18 +18,18 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
   {
     public static IParser<Token, IExpression<T>> GetStatementParser<T>(Func<string, T> eval)
     {
-      return (IParser<Token, IExpression<T>>) new StatementParser<T>(Parsers.GetParameterParser<T>(eval)).Name<Token, IExpression<T>>("Statement");
+      return new StatementParser<T>(GetParameterParser(eval)).Name("Statement");
     }
 
     private static IParser<Token, IExpression<T>> GetParameterParser<T>(Func<string, T> eval)
     {
-      TokenTypeParser typeParser1 = TokenTypeParser.GetTypeParser(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.Comma);
-      TokenTypeParser typeParser2 = TokenTypeParser.GetTypeParser(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.LeftSquareBracket);
-      TokenTypeParser typeParser3 = TokenTypeParser.GetTypeParser(Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.RightSquareBracket);
-      NameParser<Token, IExpression<T>> nameParser = new MathParser<T>(eval).Name<Token, IExpression<T>>("Atom");
-      IParser<Token, IExpression<T>> vectorParser = (IParser<Token, IExpression<T>>) null;
-      vectorParser = (IParser<Token, IExpression<T>>) ((IParser<Token, IExpression<T>>) ((Nintenlord.Parser.Parser<Token, IExpression<T>>) ((Func<IParser<Token, IExpression<T>>>) (() => vectorParser)).Lazy<Token, IExpression<T>>() | (Nintenlord.Parser.Parser<Token, IExpression<T>>) nameParser)).SepBy1<Token, Token, IExpression<T>>((IParser<Token, Token>) typeParser1).Between<Token, List<IExpression<T>>, Token, Token>((IParser<Token, Token>) typeParser2, (IParser<Token, Token>) typeParser3).Transform<Token, List<IExpression<T>>, ExpressionList<T>>((Converter<List<IExpression<T>>, ExpressionList<T>>) (x => new ExpressionList<T>((IEnumerable<IExpression<T>>) x, x[0].Position))).Name<Token, ExpressionList<T>>("Vector");
-      return (IParser<Token, IExpression<T>>) ((IParser<Token, IExpression<T>>) ((Nintenlord.Parser.Parser<Token, IExpression<T>>) nameParser | vectorParser)).Name<Token, IExpression<T>>("Parameter");
+      TokenTypeParser typeParser1 = TokenTypeParser.GetTypeParser(TokenType.Comma);
+      TokenTypeParser typeParser2 = TokenTypeParser.GetTypeParser(TokenType.LeftSquareBracket);
+      TokenTypeParser typeParser3 = TokenTypeParser.GetTypeParser(TokenType.RightSquareBracket);
+      NameParser<Token, IExpression<T>> nameParser = new MathParser<T>(eval).Name("Atom");
+      IParser<Token, IExpression<T>> vectorParser = null;
+      vectorParser = ((IParser<Token, IExpression<T>>)(((Func<IParser<Token, IExpression<T>>>)(() => vectorParser)).Lazy() | nameParser)).SepBy1(typeParser1).Between(typeParser2, typeParser3).Transform(x => new ExpressionList<T>(x, x[0].Position)).Name("Vector");
+      return ((IParser<Token, IExpression<T>>)(nameParser | vectorParser)).Name("Parameter");
     }
 
     public static IParser<Token, IExpression<T>> GetMathParser<T>(Func<string, T> eval)

@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
 {
-  public sealed class StatementParser<T> : Nintenlord.Parser.Parser<Token, IExpression<T>>
+  public sealed class StatementParser<T> : Parser<Token, IExpression<T>>
   {
     private readonly IParser<Token, IExpression<T>> parameterParser;
 
@@ -28,111 +28,109 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
     {
       match = new Match<Token>(scanner);
       Token current = scanner.Current;
+
       if (IsStatementEnding(current.Type))
       {
         ++match;
         scanner.MoveNext();
+
         return Code<T>.EmptyCode(current.Position);
       }
-      if(current.Type == TokenType.StringLiteral)
+
+      if (current.Type == TokenType.StringLiteral)
       {
-            ++match;
-            scanner.MoveNext();
-            Match<Token> match2;
-            IExpression<T> expression = this.Statement(scanner, new Symbol<T>(current.Value.Substring(1, current.Value.Length-1), current.Position), out match2);
-            match += match2;
-            if (!match.Success)
-                return null;
-            return expression;
+        ++match;
+        scanner.MoveNext();
+
+        IExpression<T> expression = Statement(scanner, new Symbol<T>(current.Value.Substring(1, current.Value.Length - 1), current.Position), out Match<Token> match2);
+        match += match2;
+
+        if (!match.Success)
+          return null;
+
+        return expression;
       }
+
       if (current.Type == TokenType.Symbol)
       {
         ++match;
         scanner.MoveNext();
+
         if (scanner.Current.Type == TokenType.Colon)
         {
           ++match;
           scanner.MoveNext();
-          Match<Token> match1;
-          IExpression<T> labeledExpression = this.Parse(scanner, out match1);
-          match += match1;
-          if (!match.Success)
-            return null;
+
+          // I wanted to use a TryParser but "Scanner can't seek" :(
+          IExpression<T> labeledExpression = Parse(scanner, out Match<Token> labeledExpressionMatch);
+
+          if (labeledExpressionMatch.Success)
+            match += labeledExpressionMatch;
+          
           return new LabeledExpression<T>(current.Position, current.Value, labeledExpression);
         }
-        Match<Token> match2;
-        IExpression<T> expression = this.Statement(scanner, new Symbol<T>(current.Value, current.Position), out match2);
-        match += match2;
-        if (!match.Success)
-          return null;
-        return expression;
+        else
+        {
+          IExpression<T> expression = Statement(scanner, new Symbol<T>(current.Value, current.Position), out Match<Token> match2);
+          match += match2;
+
+          if (!match.Success)
+            return null;
+
+          return expression;
+        }
       }
-      match = new Match<Token>(scanner, "Expected statement or label, got {0}", new object[1]
-      {
-        current
-      });
+
+      match = new Match<Token>(scanner, "Expected statement or label, got {0}", current);
       return null;
     }
 
     private IExpression<T> Statement(IScanner<Token> scanner, Symbol<T> name, out Match<Token> match)
     {
       List<IExpression<T>> parameters = new List<IExpression<T>>();
-      bool flag = false;
-      match = new Match<Token>(scanner);
       Token current;
+
+      match = new Match<Token>(scanner);
+
       while (true)
       {
         current = scanner.Current;
-        if (current.Type != Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.Equal)
+        
+        // if (current.Type != TokenType.Equal) { /* next */ } else break;
+        if (!IsStatementEnding(current.Type))
         {
-          if (!StatementParser<T>.IsStatementEnding(current.Type))
+          IExpression<T> expression = parameterParser.Parse(scanner, out Match<Token> parameterMatch);
+
+          if (parameterMatch.Success)
           {
-            Match<Token> match1;
-            IExpression<T> expression = this.parameterParser.Parse(scanner, out match1);
-            match += match1;
-            if (match.Success)
-              parameters.Add(expression);
-            else
-              goto label_9;
+            // Parameter matched
+            match += parameterMatch;
+            parameters.Add(expression);
           }
           else
-            goto label_6;
+          {
+            // Next Token can't parse to parameter, so we let it be handled by caller's logic
+            break;
+          }
         }
         else
+        {
+          // Statement ender: we can safely ignore it, and break
+          ++match;
+          scanner.MoveNext();
           break;
+        }
       }
-      ++match;
-      scanner.MoveNext();
-      flag = true;
-      current = scanner.Current;
-      if (current.Type == Nintenlord.Event_Assembler.Core.Code.Language.Lexer.TokenType.Symbol)
-      {
-        ++match;
-        scanner.MoveNext();
-        Symbol<T> symbol = new Symbol<T>(current.Value, current.Position);
-        goto label_9;
-      }
-      else
-      {
-        Match<Token> match1;
-        this.parameterParser.Parse(scanner, out match1);
-        match += match1;
-        goto label_9;
-      }
-label_6:
-      ++match;
-      scanner.MoveNext();
-label_9:
+
       if (!match.Success)
-        return (IExpression<T>) null;
-      if (flag)
-        throw new ArgumentException();
-      return (IExpression<T>) new Code<T>(name, parameters);
+        return null;
+      
+      return new Code<T>(name, parameters);
     }
 
     private static bool IsStatementEnding(TokenType type)
     {
-      return type == TokenType.CodeEnder || type == TokenType.NewLine || type == TokenType.LeftCurlyBracket || type == TokenType.RightCurlyBracket;
+      return type == TokenType.CodeEnder || type == TokenType.NewLine;
     }
   }
 }

@@ -92,12 +92,12 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
     {
       foreach (ScopeStructure<int> scope in scopeStructures.Values)
       {
-        if (!scope.IsGlobalScope())
-          continue;
-
-        foreach (KeyValuePair<string, IExpression<int>> pair in scope.GetSymbols())
+        if (scope.IsGlobalScope())
         {
-          yield return new KeyValuePair<string, int>(pair.Key, ((ValueExpression<int>)pair.Value).Value);
+          foreach (KeyValuePair<string, IExpression<int>> pair in scope.GetSymbols())
+          {
+            yield return new KeyValuePair<string, int>(pair.Key, ((ValueExpression<int>)pair.Value).Value);
+          }
         }
       }
     }
@@ -145,7 +145,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
           scope.AddNewSymbol(((LabeledExpression<int>)expression).LabelName, (IExpression<int>)new ValueExpression<int>(this.currentOffset, new FilePosition()));
           foreach (IExpression<int> child in expression.GetChildren())
           {
-            foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in this.FirstPass(child, scope))
+            foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in FirstPass(child, scope))
               yield return tuple;
           }
           break;
@@ -176,9 +176,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
       else if (expression.Type == EAExpressionType.Code)
       {
         Code<int> code = expression as Code<int>;
-        Tuple<int, ICodeTemplate> tupple;
-        if (code.IsEmpty || this.HandleBuiltInCodeSecondPass(code, parentScope) || !this.codeOffsets.TryGetValue(code, out tupple))
+
+        if (code.IsEmpty || HandleBuiltInCodeSecondPass(code, parentScope) || !codeOffsets.TryGetValue(code, out Tuple<int, ICodeTemplate> tupple))
           return;
+
         this.currentOffset = tupple.Item1;
         if (tupple.Apply((Func<int, ICodeTemplate, bool>)((x, y) => x % y.OffsetMod != 0)))
           this.AddError<int>((IExpression<int>)code, "Code {0}'s offset {1} is not divisible by {2}", (object)tupple.Item2.Name, (object)this.currentOffset.ToHexString("$"), (object)tupple.Item2.OffsetMod);
@@ -189,7 +190,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
           else
             output.BaseStream.Seek((long)this.currentOffset, SeekOrigin.Begin);
         }
-        CanCauseError<byte[]> data = tupple.Item2.GetData(code.Parameters, (Func<string, int?>)(x => this.GetSymbolVal(parentScope, x)));
+        CanCauseError<byte[]> data = tupple.Item2.GetData(code.Parameters, x => this.GetSymbolVal(parentScope, x));
         if (data.CausedError)
           this.AddError<int, byte[]>((IExpression<int>)code, data);
         else

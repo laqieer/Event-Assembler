@@ -34,37 +34,36 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
       do
       {
         Match<Token> match1;
-        IEnumerable<IExpression<T>> collection = this.statementsParser.Parse(scanner, out match1);
+
+        IEnumerable<IExpression<T>> collection = statementsParser.Parse(scanner, out match1);
         match += match1;
+
         if (!match.Success)
-          return (Scope<T>) null;
+          return null;
+
         expressions.AddRange(collection);
-        this.scopeStartParser.Parse(scanner, out match1);
+        scopeStartParser.Parse(scanner, out match1);
+
         if (match1.Success)
         {
           match += match1;
-          Scope<T> scope = this.Parse(scanner, out match1);
+          Scope<T> scope = Parse(scanner, out match1);
           match += match1;
           if (match.Success)
           {
-            expressions.Add((IExpression<T>) scope);
-            this.scopeEndParser.Parse(scanner, out match1);
+            expressions.Add(scope);
+            scopeEndParser.Parse(scanner, out match1);
             match += match1;
           }
           else
-            goto label_6;
+            break;
         }
         else
-          goto label_8;
+          return new Scope<T>(expressions, position);
       }
       while (match.Success);
-      goto label_7;
-label_6:
-      return (Scope<T>) null;
-label_7:
-      return (Scope<T>) null;
-label_8:
-      return new Scope<T>(expressions, position);
+
+      return null;
     }
   }
 }

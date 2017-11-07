@@ -16,7 +16,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
     private readonly ScopeStructure<T> ParentScope;
     private List<ScopeStructure<T>> childScopes;
     private Dictionary<string, IExpression<T>> definedSymbols;
-
+    
     public ScopeStructure(ScopeStructure<T> parentScope)
     {
       this.ParentScope = parentScope;
@@ -31,12 +31,13 @@ namespace Nintenlord.Event_Assembler.Core.Code
 
     public CanCauseError<IExpression<T>> GetSymbolValue(string symbol)
     {
-      IExpression<T> result;
-      if (this.definedSymbols.TryGetValue(symbol, out result))
+      if (definedSymbols.TryGetValue(symbol, out IExpression<T> result))
         return CanCauseError<IExpression<T>>.NoError(result);
-      if (this.ParentScope != null)
-        return this.ParentScope.GetSymbolValue(symbol);
-      return CanCauseError<IExpression<T>>.Error("Symbol {0} not defined", (object)symbol);
+
+      if (ParentScope != null)
+        return ParentScope.GetSymbolValue(symbol);
+
+      return CanCauseError<IExpression<T>>.Error("Symbol {0} not defined", symbol);
     }
 
     public CanCauseError AddNewSymbol(string symbol, IExpression<T> value)
@@ -49,7 +50,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
 
     public bool IsGlobalScope()
     {
-      return ParentScope == null;
+      return (ParentScope == null);
     }
 
     public IEnumerable<KeyValuePair<string, IExpression<T>>> GetSymbols()
@@ -59,7 +60,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
 
     public IEnumerable<ScopeStructure<T>> GetChildren()
     {
-      return (IEnumerable<ScopeStructure<T>>)this.childScopes;
+      return childScopes;
     }
   }
 }
