@@ -80,5 +80,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
       this.lines.Clear();
       return stringList.ToArray();
     }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      return true;
+    }
   }
 }

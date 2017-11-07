@@ -96,7 +96,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
         {
           foreach (KeyValuePair<string, IExpression<int>> pair in scope.GetSymbols())
           {
-            yield return new KeyValuePair<string, int>(pair.Key, ((ValueExpression<int>)pair.Value).Value);
+            int? value = GetSymbolVal(scope, pair.Key);
+
+            if (value.HasValue)
+              yield return new KeyValuePair<string, int>(pair.Key, value.Value);
           }
         }
       }

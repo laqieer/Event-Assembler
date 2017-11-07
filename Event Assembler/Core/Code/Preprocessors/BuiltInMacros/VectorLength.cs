@@ -29,5 +29,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
     {
       return (string[]) null;
     }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      return true;
+    }
   }
 }

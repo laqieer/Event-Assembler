@@ -32,5 +32,11 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
     {
       return this.GetType() == other.GetType();
     }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      // This is important
+      return false;
+    }
   }
 }

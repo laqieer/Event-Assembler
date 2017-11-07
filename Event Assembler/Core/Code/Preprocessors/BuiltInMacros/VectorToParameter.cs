@@ -26,5 +26,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
     {
       return other.GetType() == typeof (VectorToParameter);
     }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      return true;
+    }
   }
 }

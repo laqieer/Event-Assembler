@@ -28,7 +28,12 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
 
     public bool Equals(IMacro other)
     {
-      return other.GetType() == typeof (InsertText);
+      return other.GetType() == typeof(InsertText);
+    }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      return true;
     }
   }
 }

@@ -30,5 +30,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
     {
       return other.GetType() == typeof (Switch);
     }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      return index == 0;
+    }
   }
 }

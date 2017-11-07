@@ -11,6 +11,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
   public interface IMacro : IEquatable<IMacro>
   {
     bool IsCorrectAmountOfParameters(int amount);
+    bool ShouldPreprocessParameter(int index);
 
     string Replace(string[] parameters);
   }
