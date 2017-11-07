@@ -142,12 +142,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
           break;
 
         case EAExpressionType.Labeled:
-          scope.AddNewSymbol(((LabeledExpression<int>)expression).LabelName, (IExpression<int>)new ValueExpression<int>(this.currentOffset, new FilePosition()));
-          foreach (IExpression<int> child in expression.GetChildren())
-          {
-            foreach (Tuple<Code<int>, int, ICodeTemplate> tuple in FirstPass(child, scope))
-              yield return tuple;
-          }
+          scope.AddNewSymbol(((LabelExpression<int>)expression).LabelName, new ValueExpression<int>(this.currentOffset, new FilePosition()));
           break;
 
         case EAExpressionType.Assignment:

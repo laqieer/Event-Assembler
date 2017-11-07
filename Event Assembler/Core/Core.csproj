@@ -140,12 +140,12 @@
     <Compile Include="Code\Language\Expression\Tree\BitShiftLeft`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitwiseXor`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\ExpressionList`1.cs" />
-    <Compile Include="Code\Language\Expression\Tree\LabeledExpression`1.cs" />
+    <Compile Include="Code\Language\Expression\Tree\LabelExpression.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitwiseAnd`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitwiseOr`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\Assingment`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitShiftRight`1.cs" />
-    <Compile Include="Code\Language\Parser\StatementParser`1.cs" />
+    <Compile Include="Code\Language\Parser\StatementParser.cs" />
     <Compile Include="Code\Language\Parser\MathParser`1.cs" />
     <Compile Include="Code\Language\Parser\TokenTypeParser.cs" />
     <Compile Include="Code\Language\Parser\Parsers.cs" />

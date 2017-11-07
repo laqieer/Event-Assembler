@@ -411,17 +411,25 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
 
     public CanCauseError<byte[]> GetData(IExpression<int>[] code, Func<string, int?> getSymbolValue)
     {
-      if (!this.canBeRepeated)
-        return this.GetDataUnit(code, getSymbolValue);
+      if (!canBeRepeated)
+        return GetDataUnit(code, getSymbolValue);
+
+      if (code.Length == 0)
+        return CanCauseError<byte[]>.Error("Encountered {0} code with no parameters", Name);
+
       List<byte> byteList = new List<byte>(code.Length * this.LengthInBytes);
-      int num = code.Length / this.AmountOfParams;
+      int num = code.Length / AmountOfParams;
+
       for (int index = 0; index < num; ++index)
       {
-        CanCauseError<byte[]> dataUnit = this.GetDataUnit(new IExpression<int>[1]{ code[index] }, getSymbolValue);
+        CanCauseError<byte[]> dataUnit = GetDataUnit(new IExpression<int>[1]{ code[index] }, getSymbolValue);
+
         if (dataUnit.CausedError)
           return dataUnit.ConvertError<byte[]>();
-        byteList.AddRange((IEnumerable<byte>) dataUnit.Result);
+
+        byteList.AddRange(dataUnit.Result);
       }
+
       return (CanCauseError<byte[]>) byteList.ToArray();
     }
 
