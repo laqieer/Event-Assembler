@@ -149,13 +149,14 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
           break;
 
         case EAExpressionType.Assignment:
-          Assingment<int> assingment = (Assingment<int>)expression;
-          if (assingment.VariableCount != 0)
-          {
-            AddError(assingment, "Assignments with parameters aren't supported.");
-            break;
-          }
-          scope.AddNewSymbol(assingment.Name.Name, assingment.Result);
+          Assignment<int> assingment = (Assignment<int>)expression;
+          CanCauseError<int> value = Folding.Fold(assingment.Value, x => this.GetSymbolVal(scope, x));
+
+          if (value.CausedError)
+            scope.AddNewSymbol(assingment.Name.Name, assingment.Value);
+          else
+            scope.AddNewSymbol(assingment.Name.Name, new ValueExpression<int>(value.Result, new FilePosition()));
+
           break;
 
         default:

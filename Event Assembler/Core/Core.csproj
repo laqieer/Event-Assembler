@@ -143,7 +143,7 @@
     <Compile Include="Code\Language\Expression\Tree\LabelExpression.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitwiseAnd`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitwiseOr`1.cs" />
-    <Compile Include="Code\Language\Expression\Tree\Assingment`1.cs" />
+    <Compile Include="Code\Language\Expression\Tree\Assignment.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitShiftRight`1.cs" />
     <Compile Include="Code\Language\Parser\StatementParser.cs" />
     <Compile Include="Code\Language\Parser\MathParser`1.cs" />

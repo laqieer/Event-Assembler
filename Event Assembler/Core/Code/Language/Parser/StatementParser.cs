@@ -63,6 +63,19 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
 
           return new LabelExpression<T>(current.Position, current.Value);
         }
+        else if (scanner.Current.Type == TokenType.Equal)
+        {
+          ++match;
+          scanner.MoveNext();
+          
+          IExpression<T> assignmentValue = parameterParser.Parse(scanner, out Match<Token> assignmentMatch);
+          match += assignmentMatch;
+
+          if (assignmentMatch.Success)
+            return new Assignment<T>(new Symbol<T>(current.Value, current.Position), assignmentValue);
+          else
+            return null;
+        }
         else
         {
           IExpression<T> expression = ParseCode(scanner, new Symbol<T>(current.Value, current.Position), out Match<Token> match2);
@@ -106,7 +119,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
 
             // If parameter parser consumed some tokens, err
             if (parameterMatch.Length >= 0)
-              match = new Match<Token>(scanner, "Expected parameter, got {0}", current);
+              match += parameterMatch; // + new Match<Token>(scanner, "Expected parameter, got {0}", current);
 
             break;
           }
