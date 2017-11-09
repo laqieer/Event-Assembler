@@ -243,6 +243,11 @@ namespace Nintenlord.Event_Assembler.Core
       return true;
     }
 
+        public static void Assemble(string inputFile, string outputFile, string languageName, ILog messageLog)
+        {
+            Assemble(inputFile, outputFile, languageName, messageLog, null);
+        }
+
     public static void Assemble(string inputFile, string outputFile, string languageName, ILog messageLog, string symbolOutputFile)
     {
       TextReader input;
