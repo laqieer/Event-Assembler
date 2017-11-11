@@ -153,9 +153,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
           CanCauseError<int> value = Folding.Fold(assingment.Value, x => this.GetSymbolVal(scope, x));
 
           if (value.CausedError)
-            scope.AddNewSymbol(assingment.Name.Name, assingment.Value);
+            scope.AddNewSymbol(assingment.Name, assingment.Value);
           else
-            scope.AddNewSymbol(assingment.Name.Name, new ValueExpression<int>(value.Result, new FilePosition()));
+            scope.AddNewSymbol(assingment.Name, new ValueExpression<int>(value.Result, new FilePosition()));
 
           break;
 

@@ -11,31 +11,33 @@ using System.Linq;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language.Expression.Tree
 {
-  public sealed class Assignment<T> : IExpression<T>
-  {
-    public readonly Symbol<T> Name;
-    public readonly IExpression<T> Value;
-    
-    public EAExpressionType Type
+    public sealed class Assignment<T> : IExpression<T>
     {
-      get
-      {
-        return EAExpressionType.Assignment;
-      }
-    }
+        public readonly string Name;
+        public readonly IExpression<T> Value;
 
-    public FilePosition Position => Name.Position;
+        private FilePosition pos;
 
-    public Assignment(Symbol<T> name, IExpression<T> value)
-    {
-      this.Name = name;
-      this.Value = value;
-    }
+        public EAExpressionType Type
+        {
+            get
+            {
+                return EAExpressionType.Assignment;
+            }
+        }
 
-    public IEnumerable<IExpression<T>> GetChildren()
-    {
-      yield return this.Name;
-      yield return this.Value;
+        public FilePosition Position => pos;
+
+        public Assignment(string name, IExpression<T> value, FilePosition position)
+        {
+            Name = name;
+            Value = value;
+            pos = position;
+        }
+
+        public IEnumerable<IExpression<T>> GetChildren()
+        {
+            yield return Value;
+        }
     }
-  }
 }

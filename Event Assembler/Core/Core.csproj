@@ -58,7 +58,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Code\Language\Expression\Tree\ArithmeticShiftRight.cs" />
+    <Compile Include="Code\Language\Parser\AssignmentParser.cs" />
+    <Compile Include="Code\Language\Parser\CodeParser.cs" />
+    <Compile Include="Code\Language\Parser\LabelParser.cs" />
     <Compile Include="Code\Language\Parser\ParseHelpers.cs" />
+    <Compile Include="Code\Language\Parser\StatementSeparatorParser.cs" />
     <Compile Include="Code\Preprocessors\Directives\EasterEgg.cs" />
     <Compile Include="Code\Preprocessors\Directives\ToolDirectiveBase.cs" />
     <Compile Include="Code\Preprocessors\Directives\IncludeToolEvent.cs" />
@@ -134,7 +138,7 @@
     <Compile Include="Code\Language\Expression\Code`1.cs" />
     <Compile Include="Code\Language\Expression\Multiply`1.cs" />
     <Compile Include="Code\Language\Expression\Symbol`1.cs" />
-    <Compile Include="Code\Language\Expression\TokenParser`1.cs" />
+    <Compile Include="Code\Language\Expression\TokenParser.cs" />
     <Compile Include="Code\Language\Expression\Division`1.cs" />
     <Compile Include="Code\Language\Expression\Scope`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitShiftLeft`1.cs" />
@@ -145,11 +149,10 @@
     <Compile Include="Code\Language\Expression\Tree\BitwiseOr`1.cs" />
     <Compile Include="Code\Language\Expression\Tree\Assignment.cs" />
     <Compile Include="Code\Language\Expression\Tree\BitShiftRight`1.cs" />
-    <Compile Include="Code\Language\Parser\StatementParser.cs" />
-    <Compile Include="Code\Language\Parser\MathParser`1.cs" />
+    <Compile Include="Code\Language\Parser\MathParser.cs" />
     <Compile Include="Code\Language\Parser\TokenTypeParser.cs" />
     <Compile Include="Code\Language\Parser\Parsers.cs" />
-    <Compile Include="Code\Language\Parser\ScopeParser`1.cs" />
+    <Compile Include="Code\Language\Parser\ScopeParser.cs" />
     <Compile Include="Code\Language\Types\MetaType.cs" />
     <Compile Include="Code\Language\Types\Type.cs" />
     <Compile Include="Code\StringReplacers\IStringReplacer.cs" />
