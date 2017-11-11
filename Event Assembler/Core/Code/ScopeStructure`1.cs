@@ -43,7 +43,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
     public CanCauseError AddNewSymbol(string symbol, IExpression<T> value)
     {
       if (this.definedSymbols.ContainsKey(symbol))
-        return CanCauseError.Error("Symbol already exists.");
+        return CanCauseError.Error("Symbol \"{0}\" already exists.", symbol);
       this.definedSymbols[symbol] = value;
       return CanCauseError.NoError;
     }
