@@ -94,6 +94,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
         {
             switch (token.Type)
             {
+                case TokenType.StringLiteral:
                 case TokenType.Symbol:
                     return MathTokenType.Identifer;
 
