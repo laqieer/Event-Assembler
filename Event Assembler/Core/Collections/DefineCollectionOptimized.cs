@@ -29,7 +29,7 @@ namespace Nintenlord.Event_Assembler.Core.Collections
     }
 
     public DefineCollectionOptimized()
-      : this((IStringReplacer) new NewReplacer(), new Dictionary<string, IMacro>())
+      : this((IStringReplacer)new NewReplacer(), new Dictionary<string, IMacro>())
     {
     }
 
@@ -39,14 +39,14 @@ namespace Nintenlord.Event_Assembler.Core.Collections
     }
 
     public DefineCollectionOptimized(Dictionary<string, IMacro> builtInMacros)
-      : this((IStringReplacer) new NewReplacer(), builtInMacros)
+      : this((IStringReplacer)new NewReplacer(), builtInMacros)
     {
     }
 
     public DefineCollectionOptimized(IStringReplacer replacer, Dictionary<string, IMacro> builtInMacros)
     {
-      this.values = (IDictionary<string, IDictionary<int, IMacro>>) new Dictionary<string, IDictionary<int, IMacro>>();
-      this.builtInValues = (IDictionary<string, IMacro>) new Dictionary<string, IMacro>();
+      this.values = (IDictionary<string, IDictionary<int, IMacro>>)new Dictionary<string, IDictionary<int, IMacro>>();
+      this.builtInValues = (IDictionary<string, IMacro>)new Dictionary<string, IMacro>();
       this.replacer = replacer;
       replacer.BuiltInValues = this.builtInValues;
       replacer.Values = this.values;
@@ -59,10 +59,10 @@ namespace Nintenlord.Event_Assembler.Core.Collections
       IDictionary<int, IMacro> dictionary;
       if (!this.values.TryGetValue(original, out dictionary))
       {
-        dictionary = (IDictionary<int, IMacro>) new SortedDictionary<int, IMacro>();
+        dictionary = (IDictionary<int, IMacro>)new SortedDictionary<int, IMacro>();
         this.values[original] = dictionary;
       }
-      dictionary[parameters.Length] = (IMacro) userDefinedReplacer;
+      dictionary[parameters.Length] = (IMacro)userDefinedReplacer;
     }
 
     public void Add(string original, string replacer)
@@ -116,7 +116,7 @@ namespace Nintenlord.Event_Assembler.Core.Collections
     public static bool IsValidCharacter(char c)
     {
       if (!char.IsLetterOrDigit(c))
-        return (int) c == 95;
+        return (int)c == 95;
       return true;
     }
 
@@ -127,16 +127,19 @@ namespace Nintenlord.Event_Assembler.Core.Collections
         output.Append(s[index]);
     }
 
-        public CanCauseError<string> ApplyPreprocessorDefines(string original)
-        {
-            IStringReplacer tempreplacer = new NewReplacer();
-            tempreplacer.MaxIter = 100;
-            tempreplacer.BuiltInValues = this.builtInValues;
-            tempreplacer.Values = new Dictionary<string, IDictionary<int, IMacro>>();
-            return tempreplacer.Replace(original);
-        }
+    public CanCauseError<string> ApplyPreprocessorDefines(string original)
+    {
+      IStringReplacer tempreplacer = new NewReplacer
+      {
+        MaxIter = 100,
+        BuiltInValues = this.builtInValues,
+        Values = new Dictionary<string, IDictionary<int, IMacro>>()
+      };
 
-        private struct UserDefinedReplacer : IEquatable<DefineCollectionOptimized.UserDefinedReplacer>, IMacro, IEquatable<IMacro>
+      return tempreplacer.Replace(original);
+    }
+
+    private struct UserDefinedReplacer : IEquatable<DefineCollectionOptimized.UserDefinedReplacer>, IMacro, IEquatable<IMacro>
     {
       private string toReplaceWith;
       private string[] parameters;
@@ -182,6 +185,11 @@ namespace Nintenlord.Event_Assembler.Core.Collections
         if (other is DefineCollectionOptimized.UserDefinedReplacer)
           return this.Equals(other);
         return false;
+      }
+
+      public bool ShouldPreprocessParameter(int index)
+      {
+        return true;
       }
     }
   }

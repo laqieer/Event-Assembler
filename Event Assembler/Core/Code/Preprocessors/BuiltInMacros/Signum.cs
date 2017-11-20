@@ -32,5 +32,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors.BuiltInMacros
     {
       return other.GetType() == typeof (Signum);
     }
+
+    public bool ShouldPreprocessParameter(int index)
+    {
+      return true;
+    }
   }
 }

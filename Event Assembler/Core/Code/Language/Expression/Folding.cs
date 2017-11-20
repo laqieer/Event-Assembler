@@ -11,12 +11,14 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Expression
     using System.Linq;
     using System.Text;
     using Nintenlord.Utility;
+    using Nintenlord.IO;
 
     /// <summary>
     /// TODO: Update summary.
     /// </summary>
     static public class Folding
     {
+        static private IExpression<int> zeroExpression = new ValueExpression<int>(0, new FilePosition());
         /*
         static public int Fold(IExpression<int> expression)
         {
@@ -78,7 +80,11 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Expression
                 default:
                     return CanCauseError<int>.Error("Unsupported type: {0}", expression.Type);
             }
-            return func.Map(TryFold(op.First, symbolVals), TryFold(op.Second, symbolVals));
+            
+            return func.Map(
+                TryFold((op.First  ?? zeroExpression), symbolVals),
+                TryFold((op.Second ?? zeroExpression), symbolVals)
+            );
         }
 
         static public CanCauseError<int> Fold(IExpression<int> expression, Func<string, int?> symbolVals)

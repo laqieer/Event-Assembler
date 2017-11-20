@@ -56,50 +56,69 @@ namespace Nintenlord.Event_Assembler.Core.Code.StringReplacers
     public CanCauseError<string> Replace(string textToEdit)
     {
       StringBuilder textToEdit1 = new StringBuilder(textToEdit);
+
       CanCauseError canCauseError = this.Replace(textToEdit1);
+
       if (canCauseError.CausedError)
         return CanCauseError<string>.Error(canCauseError.ToString());
+
       return CanCauseError<string>.NoError(textToEdit1.ToString());
     }
 
     public CanCauseError Replace(StringBuilder textToEdit)
     {
-      if (this.currentIter == this.maxIter)
+      if (currentIter == maxIter)
         return CanCauseError.Error("Maximum amount of replacement iterations exceeeded while applying macro.");
-      ++this.currentIter;
-      foreach (KeyValuePair<int, Tuple<int, IMacro, string[]>> macro in (IEnumerable<KeyValuePair<int, Tuple<int, IMacro, string[]>>>) this.FindMacros(textToEdit))
+
+      ++currentIter;
+
+      foreach (KeyValuePair<int, Tuple<int, IMacro, string[]>> macro in FindMacros(textToEdit))
       {
         string[] strArray = macro.Value.Item3;
         string[] parameters = new string[strArray.Length];
+
         for (int index = 0; index < strArray.Length; ++index)
         {
-          CanCauseError<string> canCauseError = this.Replace(strArray[index]);
-          if (canCauseError.CausedError)
-            return (CanCauseError) canCauseError;
-          parameters[index] = canCauseError.Result;
+          if (macro.Value.Item2.ShouldPreprocessParameter(index))
+          {
+            CanCauseError<string> canCauseError = this.Replace(strArray[index]);
+
+            if (canCauseError.CausedError)
+              return (CanCauseError)canCauseError;
+
+            parameters[index] = canCauseError.Result;
+          }
+          else
+          {
+            parameters[index] = strArray[index];
+          }
         }
+
         CanCauseError<string> canCauseError1 = this.Replace(macro.Value.Item2.Replace(parameters));
+
         if (canCauseError1.CausedError)
-          return (CanCauseError) canCauseError1;
+          return (CanCauseError)canCauseError1;
+
         string @string = textToEdit.Substring(macro.Key, macro.Value.Item1).ToString();
         textToEdit.Replace(@string, canCauseError1.Result, macro.Key, @string.Length);
       }
-      --this.currentIter;
+
+      --currentIter;
       return CanCauseError.NoError;
     }
 
     private SortedDictionary<int, Tuple<int, IMacro, string[]>> FindMacros(StringBuilder s)
     {
-      SortedDictionary<int, Tuple<int, IMacro, string[]>> replace = new SortedDictionary<int, Tuple<int, IMacro, string[]>>((IComparer<int>) ReverseComparer<int>.Default);
+      SortedDictionary<int, Tuple<int, IMacro, string[]>> replace = new SortedDictionary<int, Tuple<int, IMacro, string[]>>(ReverseComparer<int>.Default);
       StringBuilder stringBuilder = new StringBuilder();
       int i = 0;
       bool inQuotes = false;
       while (i < s.Length)
       {
-        if(s[i] == '"')
+        if (s[i] == '"')
         {
-            inQuotes = !inQuotes;
-            ++i;
+          inQuotes = !inQuotes;
+          ++i;
         }
         else if (inQuotes || DefineCollectionOptimized.IsValidCharacter(s[i]))
         {
@@ -129,7 +148,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.StringReplacers
       {
         int lengthInString;
         string[] strArray;
-        if (i < s.Length && (int) s[i] == 40)
+        if (i < s.Length && (int)s[i] == 40)
         {
           strArray = NewReplacer.GetParameters(s, i, out lengthInString);
         }
@@ -157,7 +176,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.StringReplacers
       {
         for (int index1 = 0; index1 < toSearch.Length; ++index1)
         {
-          if ((int) s[index + index1] != (int) toSearch[index1])
+          if ((int)s[index + index1] != (int)toSearch[index1])
           {
             flag = false;
             break;

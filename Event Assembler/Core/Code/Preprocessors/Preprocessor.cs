@@ -99,8 +99,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
         (IDirective) new Undefine(),
         (IDirective) new IncludeToolEvent(),
         (IDirective) new IncludeToolEventAlias(),
-        (IDirective) new IncludeExternal(),
-        (IDirective) new RunExternal(),
+        (IDirective) new IncludeToolBinary(),
+        (IDirective) new RunTool(),
         (IDirective) new EasterEgg()
       }).GetDictionary<string, IDirective>();
     }
