@@ -7,7 +7,7 @@ _MUSICSOMETHING, 0x1321, 4, -game:FE8 -indexMode:8
 _WARP, 0x2F48, 8, -game:FE8 -indexMode:8
 	Unknown1, 2, 2
 	Unknown2, 4, 2
-	Position, 6, 2, coordinates:2 -preferredBase:10
+	Position, 6, 2, -coordinates:2 -preferredBase:10
 
 #Music related codes?
 #Cuts off music instantly and hangs
