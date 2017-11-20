@@ -158,7 +158,7 @@ UNIT, 0, 160, -game:FE8 -priority:unit
 ##Controls how units move right after getting loaded to the map.
 REDA, 0, 64, -game:FE8 -priority:reinforcementData
 ##Position to move the unit to.
-	New position, 0, 12, coordinate:2 -preferredBase:10
+	New position, 0, 12, -coordinate:2 -preferredBase:10
 ##Flags of the movement.
 	Flags, 12, 4, -preferredBase:2
 ##Speed of the movement.
@@ -170,7 +170,7 @@ REDA, 0, 64, -game:FE8 -priority:reinforcementData
 	Delay, 48, 8, -preferredBase:10
 
 REDA, 0, 64, -game:FE8 -priority:reinforcementData
-	New position, 0, 12, coordinate:2 -preferredBase:10
+	New position, 0, 12, -coordinate:2 -preferredBase:10
 	Flags, 12, 4, -preferredBase:2
 	Speed, 16, 8
 	Rescuing character, 24, 8

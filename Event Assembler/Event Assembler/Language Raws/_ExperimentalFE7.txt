@@ -81,7 +81,7 @@ _0x61, 0x61,  4, -game:FE7 -indexMode:8
 #Chapters: 29
 #Makes unit disappear until moved?
 _0x6E, 0x6E, 8, -game:FE7 -indexMode:8
-	Coordinates, 4, 4, coordinates:2
+	Coordinates, 4, 4, -coordinates:2
 
 #Chapters: 2, 5, 6...
 #SoC: that locked out the start button/b button

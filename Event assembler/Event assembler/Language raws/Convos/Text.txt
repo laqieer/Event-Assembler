@@ -73,7 +73,7 @@ TEX6, 0xA7, 12, -game:FE7 -indexMode:8
 ##Bubble type to use
 	Bubble type, 2, 2
 ##Position of the text. [0,0] is the center of the screen.
-	Text position, 4, 4, coordinates:2 -preferredBase:10
+	Text position, 4, 4, -coordinates:2 -preferredBase:10
 ##Text to show.
 	Text ID, 8, 2
 
@@ -82,7 +82,7 @@ TEX8, 0xD7, 12, -game:FE7 -indexMode:8
 ##Text to show.
 	Text ID, 4, 2
 ##Position of the text.
-	Text position, 8, 4, coordinates:2 -preferredBase:10
+	Text position, 8, 4, -coordinates:2 -preferredBase:10
 
 ##Shows text depending on whether tacticians
 ##gender is male or female.
@@ -159,7 +159,7 @@ NOTIFY, 0x3A40, 8, -game:FE8 -indexMode:8
 
 BROWNBOXTEXT, 0x3A41, 8, -game:FE8 -indexMode:8
 	Text ID, 2, 2
-	Text position, 4, 4, coordinates:2 -preferredBase:10
+	Text position, 4, 4, -coordinates:2 -preferredBase:10
 	
 ##Starts the text showing.
 TEXTSTART, 0x1A20, 4, -game:FE8 -indexMode:8
