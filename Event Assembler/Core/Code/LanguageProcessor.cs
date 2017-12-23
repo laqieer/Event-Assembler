@@ -8,6 +8,7 @@ using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code.Language;
 using Nintenlord.Event_Assembler.Core.Code.Templates;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -53,8 +54,8 @@ namespace Nintenlord.Event_Assembler.Core.Code
       this.collectDocComments = collectDocComments;
       this.templateComparer = equalityComparer;
       this.stringComparer = stringComparer;
-      this.docs = (IDictionary<string, List<LanguageProcessor.DocCode>>) new SortedDictionary<string, List<LanguageProcessor.DocCode>>((IComparer<string>) new NaturalComparer());
-      this.languages = (IDictionary<string, ICodeTemplateStorer>) new Dictionary<string, ICodeTemplateStorer>();
+      this.docs = new SortedDictionary<string, List<DocCode>>(new NaturalComparer());
+      this.languages = new Dictionary<string, ICodeTemplateStorer>();
     }
 
     public void ProcessCode(string folder, string extension)

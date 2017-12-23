@@ -6,7 +6,7 @@
 
 using Nintenlord.Event_Assembler.Core.Code.Language;
 using Nintenlord.Event_Assembler.Core.Code.Language.Types;
-using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using Nintenlord.Utility.Primitives;
 using System;
 using System.Collections.Generic;

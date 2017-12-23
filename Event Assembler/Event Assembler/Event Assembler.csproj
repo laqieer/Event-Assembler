@@ -447,6 +447,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Nintenlord.Forms\Nintenlord.Forms.csproj">
       <Project>{d0fe49cc-1b13-4c04-b3c1-c1a9b1872a36}</Project>
       <Name>Nintenlord.Forms</Name>

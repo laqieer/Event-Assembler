@@ -5,6 +5,7 @@ using Nintenlord.Event_Assembler.Core.Collections;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -121,7 +122,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
       this.curFile.Stream = inputStream;
       this.inputStream = inputStream;
       StringBuilder line1 = new StringBuilder(line);
-      if (!Nintenlord.Utility.Parser.ReplaceCommentsWith(line1, ' ', ref this.blockCommentDepth))
+      if (!Nintenlord.Utility.Strings.Parser.ReplaceCommentsWith(line1, ' ', ref this.blockCommentDepth))
         this.messageLog.AddError(inputStream.GetErrorString("Error removing comments"));
       line = line1.ToString().Trim();
 //      foreach (string oldValue in this.predefined)

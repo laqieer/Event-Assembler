@@ -17,6 +17,7 @@ using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.IO;
 using Nintenlord.Parser;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using Nintenlord.Utility.Primitives;
 using System;
 using System.Collections.Generic;
@@ -346,7 +347,7 @@ namespace Nintenlord.Event_Assembler.Core
     public static void LoadCodes(string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
     {
       Program.languages = (IDictionary<string, EACodeLanguage>)new Dictionary<string, EACodeLanguage>();
-      LanguageProcessor languageProcessor = new LanguageProcessor(collectDocCodes, (IComparer<ICodeTemplate>)new TemplateComparer(), Program.stringComparer);
+      LanguageProcessor languageProcessor = new LanguageProcessor(collectDocCodes, new TemplateComparer(), stringComparer);
       IPointerMaker pointerMaker = (IPointerMaker)new GBAPointerMaker();
       if (isDirectory)
         languageProcessor.ProcessCode(rawsFolder, extension);

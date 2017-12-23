@@ -5,6 +5,7 @@
 // Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
 
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using System.Collections.Generic;
 

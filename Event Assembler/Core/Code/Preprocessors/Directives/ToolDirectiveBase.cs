@@ -1,5 +1,6 @@
 ﻿using Nintenlord.Collections;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using System;
 using System.Collections.Generic;
 using System.IO;

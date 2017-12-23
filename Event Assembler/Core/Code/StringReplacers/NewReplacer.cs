@@ -7,6 +7,7 @@
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors;
 using Nintenlord.Event_Assembler.Core.Collections;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using System;
 using System.Collections.Generic;
 using System.Text;

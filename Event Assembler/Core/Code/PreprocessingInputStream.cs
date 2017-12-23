@@ -8,6 +8,7 @@ using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.IO;
+using Nintenlord.Collections.Lists;
 using System;
 using System.Collections.Generic;
 using System.IO;

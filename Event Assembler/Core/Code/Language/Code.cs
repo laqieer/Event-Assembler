@@ -6,6 +6,7 @@
 
 using Nintenlord.Event_Assembler.Core.Code.Templates;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
 using System;
 using System.Collections.Generic;
 

@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language.Lexer
 {
-    internal sealed class TokenScanner : IStoringScanner<Token>, IScanner<Token>
+    internal sealed class TokenScanner : /* IStoringScanner<Token>, */ IScanner<Token>
     {
         private List<Token> readTokens;
         private IPositionableInputStream input;

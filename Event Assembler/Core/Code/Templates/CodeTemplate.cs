@@ -9,6 +9,8 @@ using Nintenlord.Event_Assembler.Core.Code.Language.Expression;
 using Nintenlord.Event_Assembler.Core.Code.Language.Expression.Tree;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
 using Nintenlord.Utility;
+using Nintenlord.Utility.Strings;
+using Nintenlord.Utility.Primitives;
 using System;
 using System.Collections;
 using System.Collections.Generic;
