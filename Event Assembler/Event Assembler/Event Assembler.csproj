@@ -65,17 +65,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Core">
-      <HintPath>..\Core\bin\Release\Core.exe</HintPath>
-    </Reference>
-    <Reference Include="Nintenlord, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\ToolBox\Event Assembler\Nintenlord.dll</HintPath>
-    </Reference>
-    <Reference Include="Nintenlord.Forms, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\ToolBox\Event Assembler\Nintenlord.Forms.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -465,6 +454,20 @@
     <None Include="Scripts\Generate docs.cmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Nintenlord.Forms\Nintenlord.Forms.csproj">
+      <Project>{d0fe49cc-1b13-4c04-b3c1-c1a9b1872a36}</Project>
+      <Name>Nintenlord.Forms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Nintenlord\Nintenlord.csproj">
+      <Project>{8fa48ef8-3e11-494a-b587-592d7c22efdf}</Project>
+      <Name>Nintenlord</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{224c71e2-5e52-4910-910a-6fa9c2f937be}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
