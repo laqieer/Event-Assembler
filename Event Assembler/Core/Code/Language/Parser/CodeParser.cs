@@ -35,7 +35,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
                 while (true)
                 {
                     long tokenIndex = scanner.Offset;
-                    IExpression<T> param = parameterParser.Parse(scanner, out Match<Token> parameterMatch);
+					Match<Token> parameterMatch;
+                    IExpression<T> param = parameterParser.Parse(scanner, out parameterMatch);
 
                     if (parameterMatch.Success)
                     {
