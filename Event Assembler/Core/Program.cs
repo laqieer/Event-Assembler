@@ -41,7 +41,9 @@ namespace Nintenlord.Event_Assembler.Core
 
 			public RunExecType execType;
 
-			public string language;
+			public bool quiet = false;
+
+			public string language = null;
 			public string rawsFolder = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, "Language Raws");
 			public string rawsExtension = ".txt";
 			public bool isDirectory = true;
@@ -147,18 +149,7 @@ namespace Nintenlord.Event_Assembler.Core
 					throw new NotImplementedException ();
 
 				case ProgramRunConfig.RunExecType.Disassemble:
-					Program.Disassemble (
-						Program.RunConfig.inputFile,
-						Program.RunConfig.outputFile,
-						Program.RunConfig.language,
-						Program.RunConfig.addEndGuards,
-						Program.RunConfig.disassemblyMode,
-						Program.RunConfig.disassemblyOffset,
-						Program.RunConfig.disassemblyPriority,
-						Program.RunConfig.disassemblySize,
-						(ILog)writerMessageLog
-					);
-
+					Program.Disassemble ((ILog)writerMessageLog);
 					break;
 
 				case ProgramRunConfig.RunExecType.Assemble:
@@ -168,11 +159,48 @@ namespace Nintenlord.Event_Assembler.Core
 				}
 			}
 
-			writerMessageLog.PrintAll ();
+			if (Program.RunConfig == null || !Program.RunConfig.quiet)
+				writerMessageLog.PrintAll ();
+			
 			writerMessageLog.Clear ();
 
 			if (logWriter != null)
 				logWriter.Dispose ();
+		}
+
+		// EA GUI Entry point
+		public static void Assemble (string inputFile, string outputFile, string languageName, ILog log)
+		{
+			Program.RunConfig.inputFile = inputFile;
+			Program.RunConfig.outputFile = outputFile;
+			Program.RunConfig.language = languageName;
+
+			Assemble (log);
+		}
+
+		// EA GUI Entry point
+		public static void LoadCodes (string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
+		{
+			Program.RunConfig.rawsFolder = rawsFolder;
+			Program.RunConfig.rawsExtension = extension;
+			Program.RunConfig.isDirectory = isDirectory;
+
+			LoadCodes (collectDocCodes);
+		}
+
+		// EA GUI Entry point
+		public static void Disassemble (string inputFile, string outputFile, string languageName, bool addEndGuards, DisassemblyMode mode, int offset, Priority priority, int size, ILog messageLog)
+		{
+			Program.RunConfig.inputFile = inputFile;
+			Program.RunConfig.outputFile = outputFile;
+			Program.RunConfig.language = languageName;
+			Program.RunConfig.addEndGuards = addEndGuards;
+			Program.RunConfig.disassemblyMode = mode;
+			Program.RunConfig.disassemblyOffset = offset;
+			Program.RunConfig.disassemblyPriority = priority;
+			Program.RunConfig.disassemblySize = size;
+
+			Disassemble (messageLog);
 		}
 
 		private static void PrintUsage ()
@@ -242,6 +270,12 @@ namespace Nintenlord.Event_Assembler.Core
 			// From now on, the argument order doesn't matter
 
 			while (it.MoveNext ()) {
+				// -quiet
+				if (it.Current.Equals ("-quiet")) {
+					result.quiet = true;
+					continue;
+				}
+
 				// -raws <file>
 				if (it.Current.Equals ("-raws")) {
 					if (!it.MoveNext ()) {
@@ -603,41 +637,6 @@ namespace Nintenlord.Event_Assembler.Core
 		private static bool IsValidFileName (string name)
 		{
 			return !name.ContainsAnyOf (Path.GetInvalidPathChars ());
-		}
-
-		// EA GUI Entry point
-		public static void Assemble (string inputFile, string outputFile, string languageName, ILog log)
-		{
-			Program.RunConfig.inputFile = inputFile;
-			Program.RunConfig.outputFile = outputFile;
-			Program.RunConfig.language = languageName;
-
-			Assemble (log);
-		}
-
-		// EA GUI Entry point
-		public static void LoadCodes (string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
-		{
-			Program.RunConfig.rawsFolder = rawsFolder;
-			Program.RunConfig.rawsExtension = extension;
-			Program.RunConfig.isDirectory = isDirectory;
-
-			LoadCodes (collectDocCodes);
-		}
-
-		// EA GUI Entry point
-		public static void Disassemble (string inputFile, string outputFile, string languageName, bool addEndGuards, DisassemblyMode mode, int offset, Priority priority, int size, ILog messageLog)
-		{
-			Program.RunConfig.inputFile = inputFile;
-			Program.RunConfig.outputFile = outputFile;
-			Program.RunConfig.language = languageName;
-			Program.RunConfig.addEndGuards = addEndGuards;
-			Program.RunConfig.disassemblyMode = mode;
-			Program.RunConfig.disassemblyOffset = offset;
-			Program.RunConfig.disassemblyPriority = priority;
-			Program.RunConfig.disassemblySize = size;
-
-			Disassemble (messageLog);
 		}
 
 		private static void Assemble (ILog log)
