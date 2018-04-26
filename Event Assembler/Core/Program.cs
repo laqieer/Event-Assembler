@@ -104,7 +104,7 @@ namespace Nintenlord.Event_Assembler.Core
 			}
 		}
 
-		private static void Main (string[] args)
+		private static int Main (string[] args)
 		{
 			TextWriterMessageLog writerMessageLog = new TextWriterMessageLog (Console.Error);
 			StreamWriter logWriter = null;
@@ -159,13 +159,20 @@ namespace Nintenlord.Event_Assembler.Core
 				}
 			}
 
+			int exitStatus = 0;
+
+			if (writerMessageLog.ErrorCount != 0)
+				exitStatus = 1;
+			
 			if (Program.RunConfig == null || !Program.RunConfig.quiet)
 				writerMessageLog.PrintAll ();
-			
+
 			writerMessageLog.Clear ();
 
 			if (logWriter != null)
 				logWriter.Dispose ();
+
+			return exitStatus;
 		}
 
 		// EA GUI Entry point
