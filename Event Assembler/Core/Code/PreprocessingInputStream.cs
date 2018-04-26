@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: Nintenlord.Event_Assembler.Core.Code.PreprocessingInputStream
-// Assembly: Core, Version=9.10.4713.28131, Culture=neutral, PublicKeyToken=null
-// MVID: 65F61606-8B59-4B2D-B4B2-32AA8025E687
-// Assembly location: E:\crazycolorz5\Dropbox\Unified FE Hacking\ToolBox\EA V9.12.1\Core.exe
-
-using Nintenlord.Collections;
+﻿using Nintenlord.Collections;
 using Nintenlord.Event_Assembler.Core.Code.Preprocessors;
 using Nintenlord.Event_Assembler.Core.IO.Input;
 using Nintenlord.IO;
@@ -13,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace Nintenlord.Event_Assembler.Core.Code
 {
@@ -47,21 +42,28 @@ namespace Nintenlord.Event_Assembler.Core.Code
 			if (this.positions.Count == 0)
 				return (string)null;
 			
-			if (this.unreadLines.Count > 0) {
+			while (this.unreadLines.Count > 0) {
 				string first = this.unreadLines.First;
 				this.unreadLines.RemoveFirst ();
-				return first;
+
+				// Skip blank lines
+				if (first.Any(c => !Char.IsWhiteSpace(c)))
+					return first;
 			}
 
 			PreprocessingInputStream.PrimitiveStream primitiveStream = this.positions.Peek ();
 
 			string line;
+
 			if (primitiveStream.ReadLine (out line)) {
 				string[] strArray = this.preprocessor.Process (line, (IInputStream)this).Split (";".ToCharArray (), StringSplitOptions.RemoveEmptyEntries);
+
 				for (int index = 1; index < strArray.Length; ++index)
 					this.unreadLines.Add (strArray [index]);
+
 				if (strArray.Length != 0)
 					return strArray [0];
+
 				return this.ReadLine ();
 			}
 
@@ -87,7 +89,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
 		{
 			if (this.unreadLines.Count > 0)
 				throw new InvalidOperationException ();
-			
+
 			this.positions.Push (new PreprocessingInputStream.PrimitiveStream ((TextReader)new StreamReader (path)));
 		}
 
@@ -164,19 +166,24 @@ namespace Nintenlord.Event_Assembler.Core.Code
 			public string ReadLine ()
 			{
 				++this.LineNumber;
+
 				bool flag = this.lines.MoveNext ();
 				this.OriginalLine = this.lines.Current;
+
 				if (!flag)
 					return (string)null;
+
 				return this.lines.Current;
 			}
 
 			public bool ReadLine (out string line)
 			{
 				++this.LineNumber;
+
 				bool flag = this.lines.MoveNext ();
 				line = this.lines.Current;
 				this.OriginalLine = this.lines.Current;
+
 				return flag;
 			}
 

@@ -78,11 +78,15 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 				return;
 			}
 
-			if (log.ErrorCount == 0)
+			if (log.ErrorCount == 0) {
+				this.currentOffset = 0;
 				ExecuteLayoutPass (expression, null);
+			}
 
-			if (log.ErrorCount == 0)
+			if (log.ErrorCount == 0) {
+				this.currentOffset = 0;
 				ExecuteWritePass (output, expression, null);
+			}
 		}
 
 		private void ExecuteLayoutPass(IExpression<int> expression, ScopeStructure<int> scope) {

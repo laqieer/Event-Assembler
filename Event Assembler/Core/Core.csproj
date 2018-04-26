@@ -31,7 +31,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\_RE\EA-Make-Tests\EventAssembler\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,7 +39,7 @@
     <ConsolePause>false</ConsolePause>
     <CustomCommands>
       <CustomCommands>
-        <Command type="Execute" command="${TargetFile} A FE8 &quot;-output:/home/stan/Documents/_DEV/_git/FE-CHAX/test.gba&quot; &quot;-input:/home/stan/Documents/_DEV/_git/FE-CHAX/Main.event&quot;" workingdir="/home/stan/Documents/_DEV/_git/FE-CHAX/bin/EventAssembler/" />
+        <Command type="Execute" command="${TargetFile} A FE8 -input Main.event -output HACK.gba -MD -MT test.gba -MF Test.d -MG -MP" workingdir="/home/stan/Documents/_DEV/_RE/EA-Make-Tests/" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
@@ -47,7 +47,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\..\..\_RE\EA-Make-Tests\EventAssembler\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -179,6 +179,9 @@
     </Compile>
     <Compile Include="Code\Language\Expression\RawData.cs" />
     <Compile Include="Code\Language\Parser\Base64Parser.cs" />
+    <Compile Include="Code\Preprocessors\IIncludeListener.cs" />
+    <Compile Include="Code\Preprocessors\DummyIncludeListener.cs" />
+    <Compile Include="Code\Preprocessors\DependencyMakingIncludeListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
