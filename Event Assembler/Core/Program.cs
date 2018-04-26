@@ -63,6 +63,7 @@ namespace Nintenlord.Event_Assembler.Core
 			public bool ppSimulation = false;
 
 			public bool ppDepIgnoreMissingFiles = false;
+			public bool ppDepIgnoreSystemFiles = false;
 			public bool ppDepEnable = false;
 			public string ppDepOutput = null;
 			public bool ppDepAddEmptyTargets = false;
@@ -494,22 +495,41 @@ namespace Nintenlord.Event_Assembler.Core
 						continue;
 					}
 
+					// -M
 					if (it.Current.Equals ("-M")) {
 						result.ppSimulation = true;
 						result.ppDepEnable = true;
 						continue;
 					}
 
+					// -MM
+					if (it.Current.Equals ("-MM")) {
+						result.ppSimulation = true;
+						result.ppDepEnable = true;
+						result.ppDepIgnoreSystemFiles = true;
+						continue;
+					}
+
+					// -MD
 					if (it.Current.Equals ("-MD")) {
 						result.ppDepEnable = true;
 						continue;
 					}
 
+					// -MMD
+					if (it.Current.Equals ("-MMD")) {
+						result.ppDepEnable = true;
+						result.ppDepIgnoreSystemFiles = true;
+						continue;
+					}
+
+					// -MG
 					if (it.Current.Equals ("-MG")) {
 						result.ppDepIgnoreMissingFiles = true;
 						continue;
 					}
 
+					// -MP
 					if (it.Current.Equals ("-MP")) {
 						result.ppDepAddEmptyTargets = true;
 						continue;

@@ -54,6 +54,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Preprocessors
 		}
 
 		public void RegisterIncludeFile(string fPath) {
+			if (Program.RunConfig.ppDepIgnoreSystemFiles)
+				if (Path.GetFullPath (fPath).StartsWith (AppDomain.CurrentDomain.BaseDirectory))
+					return; // File is part of the program distribution, so we ignore it.
+			
 			string path = IO.IOHelpers.GetRelativePath (Environment.CurrentDirectory, fPath);
 
 			if (!fileList.Contains(path))
