@@ -217,11 +217,11 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					if (data.CausedError)
 						// Can't compute code data, so we err
 						this.AddError<int, byte[]> (expression, data);
-					else
+					else {
 						// Write data
 						TryWrite (output, expression, currentOffset, data.Result);
-
-					this.currentOffset += data.Result.Length;
+						this.currentOffset += data.Result.Length;
+					}
 
 					break;
 				}

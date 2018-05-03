@@ -43,8 +43,8 @@ namespace Nintenlord.Event_Assembler.Core.IO
 			if (!basePath.EndsWith (Path.DirectorySeparatorChar.ToString ()))
 				basePath += Path.DirectorySeparatorChar;
 			
-			Uri pathUri = new Uri(path);
-			Uri baseUri = new Uri(basePath);
+			Uri pathUri = new Uri(Path.GetFullPath (path));
+			Uri baseUri = new Uri(Path.GetFullPath (basePath));
 
 			return Uri.UnescapeDataString(baseUri.MakeRelativeUri(pathUri).ToString().Replace('/', Path.DirectorySeparatorChar));
 		}
