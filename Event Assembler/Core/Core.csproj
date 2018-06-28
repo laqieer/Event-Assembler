@@ -39,7 +39,8 @@
     <ConsolePause>false</ConsolePause>
     <CustomCommands>
       <CustomCommands>
-        <Command type="Execute" command="${TargetFile} A FE8 -input Main.event -output HACK.gba -MD -MT test.gba -MF Test.d -MG -MP" workingdir="/home/stan/Documents/_DEV/_RE/EA-Make-Tests/" />
+        <Command type="Execute" command="${TargetFile} A FFTA -output HACK.gba -input Main.event -raws TestRaws" workingdir="/home/stan/Documents/_DEV/_RE/EA-Make-Tests/" />
+        <Command type="Execute" command="${TargetFile} D FFTA Structure 0x1000 -input HACK.gba -raws TestRaws -output test.disasm.event" workingdir="/home/stan/Documents/_DEV/_RE/EA-Make-Tests/" />
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
@@ -182,6 +183,7 @@
     <Compile Include="Code\Preprocessors\IIncludeListener.cs" />
     <Compile Include="Code\Preprocessors\DummyIncludeListener.cs" />
     <Compile Include="Code\Preprocessors\DependencyMakingIncludeListener.cs" />
+    <Compile Include="Code\Language\DummyCodeLanguage.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

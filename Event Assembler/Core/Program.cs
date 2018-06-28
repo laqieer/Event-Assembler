@@ -884,11 +884,15 @@ namespace Nintenlord.Event_Assembler.Core
 					break;
 
 				case "FE8":
+					// pointerList = DummyCodeLanguage.PointerList;
 					pointerList = FE8CodeLanguage.PointerList;
 					break;
 
 				default:
-					throw new NotSupportedException ("Language " + language.Key + " not supported.");
+					pointerList = DummyCodeLanguage.PointerList;
+					break;
+				
+					// throw new NotSupportedException ("Language " + language.Key + " not supported.");
 
 				}
 
