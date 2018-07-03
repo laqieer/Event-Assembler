@@ -12,12 +12,13 @@ namespace Nintenlord.Event_Assembler.Core.GBA
 		{
 			if (offset == 0)
 				return 0;
+			
 			return offset | 0x08000000;
 		}
 
 		public int MakeOffset (int pointer)
 		{
-			return pointer & 0xFFFFFF;
+			return pointer & 0x1FFFFFF;
 		}
 
 		public bool IsAValidPointer (int pointer)
