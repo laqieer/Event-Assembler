@@ -26,7 +26,7 @@ namespace Nintenlord.Event_Assembler.Core
 		public static readonly StringComparer stringComparer = StringComparer.OrdinalIgnoreCase;
 
 		private static IDictionary<string, EACodeLanguage> languages;
-		private static ProgramRunConfig runConfig;
+		private static ProgramRunConfig runConfig = new ProgramRunConfig ();
 
 		public class ProgramRunConfig
 		{
