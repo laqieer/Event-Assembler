@@ -6,7 +6,7 @@ LOADWM, 0xAC, 16, -game:FE7 -indexMode:8
 ##it is loaded in pixels.
 	Position, 8, 4, -coordinates:2 -preferredBase:10
 ##Way to load the map.
-	Way to load, 12, 2 
+	Way to load, 12, 2
 
 ##Lights up an area on the world map.
 HIGHLIGHT, 0xB9, 16, -game:FE7 -indexMode:8
@@ -63,7 +63,7 @@ WM_LOADLOCATION2, 0x9340, 8, -game:FE8 -indexMode:8
 	Value1, 2, 2
 	LocationID, 4, 2
 	Value2, 6, 2
-	
+
 #Silently removes a world map location. Used to remove the old versions of Renvall and Jehanna Hall.
 WM_REMOVELOCATION, 0x9440, 8, -game:FE8 -indexMode:8
 	Value1, 2, 2
@@ -75,7 +75,7 @@ WM_LOADLOCATION3, 0x9540, 8, -game:FE8 -indexMode:8
 	Value1, 2, 2
 	LocationID, 4, 2
 	Value2, 6, 2
-	
+
 #Also draws a path; used by Chapter 17 to draw the Mulan-Renais path.
 DRAWPATH3, 0x9640, 8, -game:FE8 -indexMode:8
 	Value1, 2, 2
@@ -110,7 +110,7 @@ WM_HIGHLIGHTCLEAR2, 0xBA40, 8, -game:FE8 -indexMode:8
 	Region, 4, 2
 	Value2, 6, 2
 
-PLACEDOT, 0xBC60, 12, -game:FE8 -indexMode:8	
+PLACEDOT, 0xBC60, 12, -game:FE8 -indexMode:8
 	Palette, 6, 1
 ##Position of the dot.
 	Location ID, 8, 1

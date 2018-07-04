@@ -82,7 +82,7 @@ Parameter flags:
   of pointed code, which allows EA to disassemble the pointed code
   in some disassembly modes.
 
- coordinates, -coordinate
+ coordinates, coordinate
   Specifies the amount of coordinates in the parameter. If range of 
   values is specified, the largest value is considered the real amount.
   Unspecified parameters in assembly will default to 0. Default amount
