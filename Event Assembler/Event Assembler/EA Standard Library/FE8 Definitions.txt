@@ -406,6 +406,13 @@
 #define LunarBracelet 0x98
 #define SunBracelet 0x99
 #define SolarBracelet 0x99
+#define Item1G 0x9A
+#define Item5G 0x9B
+#define Item10G 0x9C
+#define Item50G 0x9D
+#define Item100G 0x9E
+#define Item3000G 0x9F
+#define Item5000G 0xA0
 #define _1G 0x9A
 #define _5G 0x9B
 #define _10G 0x9C
