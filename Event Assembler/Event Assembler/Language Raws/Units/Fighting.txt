@@ -21,7 +21,7 @@ FIGH, 0x49, 20, -game:FE6 -indexMode:8
 	Defender, 8, 4
 	Battle data pointer, 12, 4, -pointer:battleData
 ##Controls additional details about the battle.
-	Battle parameter, 16, 4, -coordinate:4
+	Battle parameter, 16, 4, coordinate:4
 
 FIGH, 0x49, 20, -game:FE6 -indexMode:8
 	Attacker, 4, 4
@@ -44,7 +44,7 @@ FIGH, 0x97, 20, -game:FE7 -indexMode:8
 	Attacker, 4, 2
 	Defender, 8, 2
 	Battle data pointer, 12, 4, -pointer:battleData
-	Battle parameter, 16, 4, -coordinate:4
+	Battle parameter, 16, 4, coordinate:4
 
 FIGH, 0x97, 20, -game:FE7 -indexMode:8
 	Attacker, 4, 2

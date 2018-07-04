@@ -2,9 +2,9 @@
 ##Moves a unit on chapter map.
 MOVE, 0xD, 12, -game:FE6 -indexMode:8
 ##Position of the unit to move.
-	Old position, 4, 4, -coordinates:2
+	Old position, 4, 4, coordinates:2
 ##Position to move the unit to.
-	New position, 8, 4, -coordinates:2
+	New position, 8, 4, coordinates:2
 
 MOVE, 0xF, 12, -game:FE6 -indexMode:8
 	Character, 4, 2
