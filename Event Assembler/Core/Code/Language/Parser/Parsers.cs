@@ -19,7 +19,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
     {
         public static IParser<Token, IExpression<T>> MakeStatementParser(Func<string, T> literalEvaluate)
         {
-            return (((new LabelParser<T>() | new AssignmentParser<T>(MakeAtomParser(literalEvaluate))) | new CodeParser<T>(MakeParameterParser(literalEvaluate)) | new StatementSeparatorParser<T>())).Name("Statement");
+			return ((((new Base64Parser<T>() | new LabelParser<T>()) | new AssignmentParser<T>(MakeAtomParser(literalEvaluate))) | new CodeParser<T>(MakeParameterParser(literalEvaluate)) | new StatementSeparatorParser<T>())).Name("Statement");
         }
 
         private static IParser<Token, IExpression<T>> MakeParameterParser(Func<string, T> literalEvaluate)

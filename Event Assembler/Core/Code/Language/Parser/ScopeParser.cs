@@ -33,7 +33,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
             FilePosition position = scanner.Current.Position;
             do
             {
-                IEnumerable<IExpression<T>> collection = statementsParser.Parse(scanner, out Match<Token> match1);
+				Match<Token> match1;
+                IEnumerable<IExpression<T>> collection = statementsParser.Parse(scanner, out match1);
                 match += match1;
 
                 if (!match.Success)

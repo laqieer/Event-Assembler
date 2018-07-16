@@ -6,23 +6,24 @@
 
 namespace Nintenlord.Event_Assembler.Core.Code.Language.Lexer
 {
-  public enum TokenType
-  {
-    EndOfStream,
-    LeftParenthesis,
-    RightParenthesis,
-    LeftCurlyBracket,
-    RightCurlyBracket,
-    LeftSquareBracket,
-    RightSquareBracket,
-    StringLiteral,
-    IntegerLiteral,
-    Symbol,
-    MathOperator,
-    CodeEnder,
-    NewLine,
-    Comma,
-    Equal,
-    Colon,
-  }
+	public enum TokenType
+	{
+		EndOfStream,
+		LeftParenthesis,
+		RightParenthesis,
+		LeftCurlyBracket,
+		RightCurlyBracket,
+		LeftSquareBracket,
+		RightSquareBracket,
+		StringLiteral,
+		IntegerLiteral,
+		Symbol,
+		MathOperator,
+		CodeEnder,
+		NewLine,
+		Comma,
+		Equal,
+		Colon,
+		Base64Literal,
+	}
 }

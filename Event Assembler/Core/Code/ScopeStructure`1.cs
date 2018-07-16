@@ -31,7 +31,8 @@ namespace Nintenlord.Event_Assembler.Core.Code
 
     public CanCauseError<IExpression<T>> GetSymbolValue(string symbol)
     {
-      if (definedSymbols.TryGetValue(symbol, out IExpression<T> result))
+	  IExpression<T> result;
+      if (definedSymbols.TryGetValue(symbol, out result))
         return CanCauseError<IExpression<T>>.NoError(result);
 
       if (ParentScope != null)

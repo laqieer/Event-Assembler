@@ -6,25 +6,26 @@
 
 namespace Nintenlord.Event_Assembler.Core.GBA
 {
-  public class GBAPointerMaker : IPointerMaker
-  {
-    public int MakePointer(int offset)
-    {
-      if (offset == 0)
-        return 0;
-      return offset | 0x08000000;
-    }
+	public class GBAPointerMaker : IPointerMaker
+	{
+		public int MakePointer (int offset)
+		{
+			if (offset == 0)
+				return 0;
+			
+			return offset | 0x08000000;
+		}
 
-    public int MakeOffset(int pointer)
-    {
-      return pointer & 0xFFFFFF;
-    }
+		public int MakeOffset (int pointer)
+		{
+			return pointer & 0x1FFFFFF;
+		}
 
-    public bool IsAValidPointer(int pointer)
-    {
-      if (pointer != 0)
-        return pointer >> 25 == 4;
-      return true;
-    }
-  }
+		public bool IsAValidPointer (int pointer)
+		{
+			if (pointer != 0)
+				return pointer >> 25 == 4;
+			return true;
+		}
+	}
 }

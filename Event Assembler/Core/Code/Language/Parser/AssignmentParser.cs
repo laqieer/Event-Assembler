@@ -21,16 +21,16 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
 
         protected override IExpression<T> ParseMain(IScanner<Token> scanner, out Match<Token> match)
         {
-            match = new Match<Token>(scanner);
-
             Token first = scanner.Current;
             long currentIndex = scanner.Offset;
 
             if (first.Type == TokenType.Symbol)
             {
-                string labelName = first.Value;
+				string labelName = first.Value;
 
-                ++match;
+				match = new Match<Token>(scanner);
+
+				++match;
                 scanner.MoveNext();
 
                 if (scanner.Current.Type == TokenType.Equal)
@@ -38,7 +38,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Parser
                     ++match;
                     scanner.MoveNext();
 
-                    IExpression<T> result = valueParser.Parse(scanner, out Match<Token> resultMatch);
+					Match<Token> resultMatch;
+                    IExpression<T> result = valueParser.Parse(scanner, out resultMatch);
 
                     if (resultMatch.Success)
                     {
