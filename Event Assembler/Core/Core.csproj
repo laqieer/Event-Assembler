@@ -31,24 +31,18 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\_RE\EA-Make-Tests\Tools\EventAssembler\</OutputPath>
+    <OutputPath>bin\Debug</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
     <ConsolePause>false</ConsolePause>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="Execute" command="${TargetFile} A FFTA -output HACK.gba -input Main.event -raws TestRaws" workingdir="/home/stan/Documents/_DEV/_RE/EA-Make-Tests/" />
-        <Command type="Execute" command="${TargetFile} D FFTA Structure 0x1000 -input HACK.gba -raws TestRaws -output test.disasm.event" workingdir="/home/stan/Documents/_DEV/_RE/EA-Make-Tests/" />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\_RE\EA-Make-Tests\Tools\EventAssembler\</OutputPath>
+    <OutputPath>bin\Release</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
