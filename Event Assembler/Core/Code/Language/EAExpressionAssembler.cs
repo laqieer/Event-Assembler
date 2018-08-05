@@ -171,6 +171,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			case EAExpressionType.Labeled:
 				{
+					// record label names
+					scope.SetLabelAddress(((LabelExpression<int>)expression).LabelName, currentOffset);
+					
 					CanCauseError err = scope.AddNewSymbol (((LabelExpression<int>)expression).LabelName, new ValueExpression<int> (this.currentOffset, new FilePosition ()));
 
 					if (err.CausedError)
@@ -304,7 +307,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					
 					// alignment
 					if(!code.IsEmpty && code.CodeName.Name == offsetAligner) 
-						output.WriteLine("\t.align {0}", code[0]);
+						// output.WriteLine("\t.align {0}", code[0]);
+						//TODO .align n
+						output.WriteLine("\t.align");
 											
 					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope))
 						break;
@@ -324,7 +329,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					// We won't check for alignment as it should already have been done in the layout pass
 
 					ICodeTemplate template = templateError.Result;
-
+					
 					CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x));
 
 					if (data.CausedError)

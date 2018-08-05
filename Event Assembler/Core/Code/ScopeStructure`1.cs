@@ -16,12 +16,14 @@ namespace Nintenlord.Event_Assembler.Core.Code
     private readonly ScopeStructure<T> ParentScope;
     private List<ScopeStructure<T>> childScopes;
     private Dictionary<string, IExpression<T>> definedSymbols;
+    private Dictionary <string, int> labels;
     
     public ScopeStructure(ScopeStructure<T> parentScope)
     {
       this.ParentScope = parentScope;
       this.childScopes = new List<ScopeStructure<T>>();
       this.definedSymbols = new Dictionary<string, IExpression<T>>();
+      this.labels = new Dictionary<string, int>();
     }
 
     public void AddChildScope(ScopeStructure<T> newChildScope)
@@ -48,6 +50,21 @@ namespace Nintenlord.Event_Assembler.Core.Code
 
       definedSymbols[symbol] = value;
       return CanCauseError.NoError;
+    }
+    
+    public int GetLabelAddress(string labelName)
+    {
+    	if(labels.ContainsKey(labelName))
+    		return labels[labelName];
+    	return 0;
+    }
+    
+    public void SetLabelAddress(string labelName, int labelAddress)
+    {
+    	if(labels.ContainsKey(labelName))
+    		labels[labelName] = labelAddress;
+    	else
+    		labels.Add(labelName, labelAddress);
     }
 
     public bool IsGlobalScope()
