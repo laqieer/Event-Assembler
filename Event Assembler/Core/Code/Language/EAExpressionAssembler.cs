@@ -350,10 +350,6 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 				}
 
 			case EAExpressionType.Labeled:
-					CanCauseError err = scope.AddNewSymbol (((LabelExpression<int>)expression).LabelName, new ValueExpression<int> (this.currentOffset, new FilePosition ()));
-
-					if (err.CausedError)
-						AddWarning (expression, err.ErrorMessage);
 					
 					//TODO Add label attribute: ".global LabelName"
 					output.WriteLine(((LabelExpression<int>)expression).LabelName + ":");
