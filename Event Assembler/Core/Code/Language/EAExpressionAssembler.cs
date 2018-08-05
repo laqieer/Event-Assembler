@@ -88,6 +88,43 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 				ExecuteWritePass (output, expression, null);
 			}
 		}
+		
+		public void Compile(IPositionableInputStream input, TextWriter output, ILog log) {
+			this.log = log;
+
+			this.offsetHistory = new Stack<int> ();
+			this.protectedRegions = new List<Tuple<int, int>> ();
+
+			this.scopeStructures = new Dictionary<IExpression<int>, ScopeStructure<int>> ();
+
+			TokenScanner tokenScanner = new TokenScanner (input);
+
+			if (!tokenScanner.MoveNext ())
+				return;
+
+			Match<Token> match;
+			IExpression<int> expression = parser.Parse (tokenScanner, out match);
+
+			if (!match.Success) {
+				log.AddError (match.Error);
+				return;
+			}
+
+			if (!tokenScanner.IsAtEnd && tokenScanner.Current.Type != TokenType.EndOfStream) {
+				AddNotReachedEnd (tokenScanner.Current);
+				return;
+			}
+
+			if (log.ErrorCount == 0) {
+				this.currentOffset = 0;
+				ExecuteLayoutPass (expression, null);
+			}
+
+			if (log.ErrorCount == 0) {
+				this.currentOffset = 0;
+				ExecuteWritePass (output, expression, null);
+			}
+		}
 
 		private void ExecuteLayoutPass(IExpression<int> expression, ScopeStructure<int> scope) {
 			switch (expression.Type) {
@@ -245,7 +282,93 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			}
 		}
+		
+		private void ExecuteWritePass(TextWriter output, IExpression<int> expression, ScopeStructure<int> scope) {
+			// This is to be executed *after* the layout pass
 
+			switch (expression.Type) {
+
+			case EAExpressionType.Scope:
+				{
+					ScopeStructure<int> newScope = scopeStructures [(Scope<int>)expression];
+
+					foreach (IExpression<int> child in expression.GetChildren())
+						ExecuteWritePass (output, child, newScope);
+
+					break;
+				}
+
+			case EAExpressionType.Code:
+				{
+					Code<int> code = expression as Code<int>;
+					
+					// alignment
+					if(!code.IsEmpty && code.CodeName.Name == offsetAligner) 
+						output.WriteLine("\t.align {0}", code[0]);
+											
+					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope))
+						break;
+
+					// Maybe all of this template lookup up can be made faster by
+					// storing the found template from the layout pass?
+
+					Types.Type[] sig = ((IEnumerable<IExpression<int>>)code.Parameters).Select (new Func<IExpression<int>, Types.Type> (Types.Type.GetType<int>)).ToArray ();
+
+					CanCauseError<ICodeTemplate> templateError = this.storer.FindTemplate (code.CodeName.Name, sig);
+
+					if (templateError.CausedError) {
+						AddError<int, ICodeTemplate> ((IExpression<int>)code, templateError);
+						break;
+					}
+
+					// We won't check for alignment as it should already have been done in the layout pass
+
+					ICodeTemplate template = templateError.Result;
+
+					CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x));
+
+					if (data.CausedError)
+						// Can't compute code data, so we err
+						this.AddError<int, byte[]> (expression, data);
+					else {
+						// Write data
+						TryWrite (output, expression, currentOffset, data.Result);
+						this.currentOffset += data.Result.Length;
+					}
+
+					break;
+				}
+
+			case EAExpressionType.RawData:
+				{
+					RawData<int> rawData = (RawData<int>)expression;
+
+					TryWrite (output, expression, this.currentOffset, rawData.Data);
+					this.currentOffset += rawData.Data.Length;
+
+					break;
+				}
+
+			case EAExpressionType.Labeled:
+					CanCauseError err = scope.AddNewSymbol (((LabelExpression<int>)expression).LabelName, new ValueExpression<int> (this.currentOffset, new FilePosition ()));
+
+					if (err.CausedError)
+						AddWarning (expression, err.ErrorMessage);
+					
+					//TODO Add label attribute: ".global LabelName"
+					output.WriteLine(((LabelExpression<int>)expression).LabelName + ":");
+					
+					break;
+			case EAExpressionType.Assignment:
+					//TODO .set/.equ, but it doesn't matter
+				break;
+
+			default:
+				throw new ArgumentException ("Badly formed tree.");
+
+			}
+		}
+		
 		private bool SyncOutputCursorWithOffset(BinaryWriter output, long offset) {
 			if (output.BaseStream.Position != offset) {
 				if (!output.BaseStream.CanSeek)
@@ -256,7 +379,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			return true;
 		}
-
+		
 		private bool TryWrite(BinaryWriter output, IExpression<int> expression, long offset, byte[] data) {
 			if (!SyncOutputCursorWithOffset (output, (long)this.currentOffset)) {
 				this.AddError<int> (expression, "Stream cannot be seeked.");
@@ -272,6 +395,16 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 			return true;
 		}
 
+		private bool TryWrite(TextWriter output, IExpression<int> expression, long offset, byte[] data) {
+			if (IsProtected (this.currentOffset, data.Length)) {
+				this.AddError<int> (expression, "Attempting to modify protected memory at " + this.currentOffset.ToHexString ("$") + " with code of length " + data.Length);
+				return false;
+			}
+
+			output.WriteLine ("\t.byte 0x" + BitConverter.ToString(data).Replace("-", ", 0x"));
+			return true;
+		}
+		
 		private bool HandleBuiltInCodeLayout(Code<int> code, ScopeStructure<int> scope) {
 			switch (code.CodeName.Name) {
 
