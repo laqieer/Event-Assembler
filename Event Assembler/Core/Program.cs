@@ -814,6 +814,8 @@ namespace Nintenlord.Event_Assembler.Core
 
 						using (StreamWriter output = new StreamWriter(outFile, false, Encoding.Default)) {
                             // Make entry point label global to call in C source file
+                            //TODO support ARM?
+                            output.WriteLine("\t.thumb");
                             output.WriteLine("\t.global " + Path.GetFileName(outFile).Replace(".", "_"));
                             output.WriteLine(Path.GetFileName(outFile).Replace(".", "_") + ":");
 

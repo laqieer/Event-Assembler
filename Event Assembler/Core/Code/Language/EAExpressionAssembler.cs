@@ -34,7 +34,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 		private const string offsetPopper = "POP";
 		private const string assertion = "ASSERT";
 		private const string protectCode = "PROTECT";
-		private readonly IParser<Token, IExpression<int>> parser;
+        private const string ThumbAssembly = "T";
+        private const string ARMAssembly = "A";
+        private readonly IParser<Token, IExpression<int>> parser;
 		private readonly ICodeTemplateStorer storer;
 		private ILog log;
 
@@ -309,7 +311,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					if(!code.IsEmpty && code.CodeName.Name == offsetAligner && code.ParameterCount.IsInRange(1, 1) && !(code.Parameters[0] is ExpressionList<int>)) 
 						output.WriteLine("\t.align {0}", Math.Ceiling(Math.Log(Folding.Fold (code.Parameters[0], (x => this.GetSymbolValue (scope, x))).Result, 2)));
 											
-					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope))
+					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope, output))
 						break;
 
 					// Maybe all of this template lookup up can be made faster by
@@ -477,13 +479,80 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 				HandleBuiltInProtect (code, scope);
 				return true;
 
+            case ThumbAssembly:
+            case ARMAssembly:
+                return true;
+
 			default:
 				return false;
 
 			}
 		}
 
-		private bool HandleBuiltInCodeWrite(Code<int> code, ScopeStructure<int> scope) {
+        private void PrintAssemblyCode(Code<int> code, ScopeStructure<int> scope, TextWriter output)
+        {
+            output.Write("\t");
+            for (int i = 0; i < code.Parameters.Length; i++)
+            {
+                // support EA macro in inline assembly
+                if (!scope.IsLabelExisted(code.Parameters[i].ToString()) && !scope.GetSymbolValue(code.Parameters[i].ToString()).CausedError)
+                {
+                    output.Write(" #0x{0:X}", Folding.Fold(code.Parameters[i], (x => this.GetSymbolValue(scope, x))).Result);
+                }
+                else
+                {
+                    output.Write(" {0}", code.Parameters[i].ToString());
+                }
+
+                if (i == 0)
+                {
+                    output.Write("\t");
+                    if (code.Parameters[0].ToString() == "push" || code.Parameters[0].ToString() == "pop")
+                        output.Write("{");
+                }
+                if (i != code.Parameters.Length - 1)
+                {
+                    if (i != 0)
+                        output.Write(",");
+
+                    if (code.Parameters[0].ToString().StartsWith("ldr") || code.Parameters[0].ToString().StartsWith("str"))
+                    {
+                        if(i == 1)
+                            output.Write("[");
+                    }
+
+                    // Console.WriteLine(code.Parameters[i + 1].ToString());
+                    if (System.Text.RegularExpressions.Regex.IsMatch(code.Parameters[i + 1].ToString(), @"^\d+$"))
+                        output.Write("#");
+                }
+                    else
+                    {
+                        if (code.Parameters[0].ToString() == "push" || code.Parameters[0].ToString() == "pop")
+                            output.Write(" }");
+                        else
+                            if (code.Parameters[0].ToString().StartsWith("ldr") || code.Parameters[0].ToString().StartsWith("str"))
+                                output.Write(" ]");
+                        output.Write("\n");
+                    }
+                    
+                
+            }
+        }
+
+        private void HandleThumbAssembly(Code<int> code, ScopeStructure<int> scope, TextWriter output)
+        {
+            /* output.WriteLine("/t .thumb");
+            output.WriteLine("/t .thumb_func"); */
+            PrintAssemblyCode(code, scope, output);
+        }
+
+        private void HandleARMAssembly(Code<int> code, ScopeStructure<int> scope, TextWriter output)
+        {
+            // output.WriteLine("/t .arm");
+            PrintAssemblyCode(code, scope, output);
+        }
+
+        private bool HandleBuiltInCodeWrite(Code<int> code, ScopeStructure<int> scope, TextWriter output) {
 			switch (code.CodeName.Name) {
 
 			case messagePrinterCode:
@@ -522,13 +591,72 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 			case protectCode:
 				return true;
 
+            case ThumbAssembly:
+                HandleThumbAssembly (code, scope, output);
+                return true;
+
+            case ARMAssembly:
+                HandleARMAssembly (code, scope, output);
+                return true;
+
 			default:
 				return false;
 
 			}
 		}
 
-		private void HandleBuiltInOffsetChange(Code<int> code, ScopeStructure<int> scope) {
+        private bool HandleBuiltInCodeWrite(Code<int> code, ScopeStructure<int> scope)
+        {
+            switch (code.CodeName.Name)
+            {
+
+                case messagePrinterCode:
+                    this.log.AddMessage(this.ExpressionToString((IExpression<int>)code, scope).Substring(code.CodeName.Name.Length + 1));
+                    return true;
+
+                case errorPrinterCode:
+                    this.log.AddError(this.ExpressionToString((IExpression<int>)code, scope).Substring(code.CodeName.Name.Length + 1));
+                    return true;
+
+                case warningPrinterCode:
+                    this.log.AddWarning(this.ExpressionToString((IExpression<int>)code, scope).Substring(code.CodeName.Name.Length + 1));
+                    return true;
+
+                case currentOffsetCode:
+                case offsetAligner:
+                    HandleBuiltInOffsetAlign(code, scope);
+                    return true;
+
+                case offsetChanger:
+                    HandleBuiltInOffsetChange(code, scope);
+                    return true;
+
+                case offsetPusher:
+                    HandleBuiltInOffsetPush(code, scope);
+                    return true;
+
+                case offsetPopper:
+                    HandleBuiltInOffsetPop(code, scope);
+                    return true;
+
+                case assertion:
+                    HandleBuiltInAssert(code, scope);
+                    return true;
+
+                case protectCode:
+                    return true;
+
+                case ThumbAssembly:
+                case ARMAssembly:
+                    return true;
+
+                default:
+                    return false;
+
+            }
+        }
+
+        private void HandleBuiltInOffsetChange(Code<int> code, ScopeStructure<int> scope) {
 			if (code.ParameterCount.IsInRange (1, 1) && !(code [0] is ExpressionList<int>)) {
 				CanCauseError<int> canCauseError = Folding.Fold (code [0], (x => this.GetSymbolValue (scope, x)));
 				if (!canCauseError.CausedError)
