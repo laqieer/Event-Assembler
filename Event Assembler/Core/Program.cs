@@ -817,6 +817,8 @@ namespace Nintenlord.Event_Assembler.Core
                             //TODO support ARM?
                             output.WriteLine("\t.thumb");
                             output.WriteLine("\t.global " + Path.GetFileNameWithoutExtension(outFile).Replace(".", "_"));
+                            output.WriteLine("\t.include \"event_func_Thumb.inc\"");
+                            output.WriteLine("\t.include \"event_func_C.inc\"");
                             output.WriteLine(Path.GetFileNameWithoutExtension(outFile).Replace(".", "_") + ":");
 
                             if (!Program.CodesLoaded)

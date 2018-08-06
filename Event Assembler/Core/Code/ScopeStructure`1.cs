@@ -8,6 +8,7 @@ using Nintenlord.Collections.Trees;
 using Nintenlord.Event_Assembler.Core.Code.Language.Expression;
 using Nintenlord.Utility;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Nintenlord.Event_Assembler.Core.Code
 {
@@ -16,14 +17,16 @@ namespace Nintenlord.Event_Assembler.Core.Code
     private readonly ScopeStructure<T> ParentScope;
     private List<ScopeStructure<T>> childScopes;
     private Dictionary<string, IExpression<T>> definedSymbols;
-    private Dictionary <string, int> labels;
+    private Dictionary <string, int> localLabels; // local labels
+    private List<string> ASMCLabels; // extern labels
     
     public ScopeStructure(ScopeStructure<T> parentScope)
     {
       this.ParentScope = parentScope;
       this.childScopes = new List<ScopeStructure<T>>();
       this.definedSymbols = new Dictionary<string, IExpression<T>>();
-      this.labels = new Dictionary<string, int>();
+      this.localLabels = new Dictionary<string, int>();
+      this.ASMCLabels = new List<string>();
     }
 
     public void AddChildScope(ScopeStructure<T> newChildScope)
@@ -52,29 +55,39 @@ namespace Nintenlord.Event_Assembler.Core.Code
       return CanCauseError.NoError;
     }
     
-    public int GetLabelAddress(string labelName)
+    public int GetLocalLabelAddress(string labelName)
     {
-    	if(labels.ContainsKey(labelName))
-    		return labels[labelName];
+    	if(localLabels.ContainsKey(labelName))
+    		return localLabels[labelName];
     	return 0;
     }
     
-    public void SetLabelAddress(string labelName, int labelAddress)
+    public void SetLocalLabelAddress(string labelName, int labelAddress)
     {
-    	if(labels.ContainsKey(labelName))
-    		labels[labelName] = labelAddress;
+    	if(localLabels.ContainsKey(labelName))
+    		localLabels[labelName] = labelAddress;
     	else
-    		labels.Add(labelName, labelAddress);
+    		localLabels.Add(labelName, labelAddress);
     }
 
-    public bool IsLabelExisted(string labelName)
+    public bool IsLocalLabelExisted(string labelName)
     {
-        if (labels.ContainsKey(labelName))
+        if (localLabels.ContainsKey(labelName))
             return true;
         return false;
     }
 
-        public bool IsGlobalScope()
+    public void RegisterASMCLabel(string labelName)
+    {
+        ASMCLabels.Add(labelName);
+    }
+
+    public List<string> GetRegisteredASMCLabels()
+    {
+        return ASMCLabels.Distinct().ToList();
+    }
+    
+    public bool IsGlobalScope()
     {
       return (ParentScope == null);
     }

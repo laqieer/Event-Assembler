@@ -146,7 +146,12 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       return true;
     }
 
-    public Dictionary<int, string> GetLabels()
+    public Dictionary<int, string> GetLocalLabels()
+    {
+        return new Dictionary<int, string> { };
+    }
+
+    public Dictionary<int, string> GetExternLabels()
     {
         return new Dictionary<int, string> { };
     }

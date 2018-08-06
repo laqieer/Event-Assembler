@@ -37,11 +37,22 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     private readonly List<TemplateParameter> fixedParameters;
     private IPointerMaker pointerMaker;
     private readonly StringComparer comparer;
-    private Dictionary<int, string> labels;
+    private Dictionary<int, string> localLabels;
+    private Dictionary<int, string> externLabels;
 
-    public Dictionary<int, string> GetLabels()
+    public Dictionary<int, string> GetLocalLabels()
     {
-        return labels.OrderBy(o => o.Key).ToDictionary(o => o.Key, p => p.Value);
+        return localLabels.OrderBy(o => o.Key).ToDictionary(o => o.Key, p => p.Value);
+    }
+
+    public Dictionary<int, string> GetExternLabels()
+    {
+        return externLabels.OrderBy(o => o.Key).ToDictionary(o => o.Key, p => p.Value);
+    }
+
+        public void AddExternLabel(int pos, string labelName)
+    {
+        externLabels.Add(pos, labelName);
     }
 
     public IPointerMaker PointerMaker
@@ -196,8 +207,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       this.parameters = new List<TemplateParameter>(parameters.Count<TemplateParameter>());
       this.fixedParameters = new List<TemplateParameter>(parameters.Count<TemplateParameter>());
       this.baseData = new byte[this.LengthInBytes];
-      labels = new Dictionary<int, string> { };
-      
+      localLabels = new Dictionary<int, string> { };
+      externLabels = new Dictionary<int, string> { };      
       if (id != 0)
       {
         this.baseData[0] = (byte) (id & (int) byte.MaxValue);
@@ -277,20 +288,29 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     public CanCauseError<byte[]> GetDataUnit(IExpression<int>[] parameters, Func<string, int?> getSymbolValue, ScopeStructure<int> scope)
     {
       byte[] code = this.baseData.Clone() as byte[];
-      labels.Clear();
+      localLabels.Clear();
+      externLabels.Clear();
       for (int index = 0; index < parameters.Length; ++index)
       {
         TemplateParameter paramTemp = this[index];
         if (paramTemp.lenght > 0)
         {
-          CanCauseError<int[]> values = CodeTemplate.GetValues(parameters[index], paramTemp, getSymbolValue, this.pointerMaker);
-          if (values.CausedError)
-            return values.ConvertError<byte[]>();
-          paramTemp.InsertValues(values.Result, code);
-          if (scope.IsLabelExisted(parameters[index].ToString()))
-          {
-             labels.Add(paramTemp.position / 8, parameters[index].ToString());
-          }
+               if (scope.GetRegisteredASMCLabels().Exists(o => o == parameters[index].ToString()) && !scope.IsLocalLabelExisted(parameters[index].ToString()))
+               {
+                   paramTemp.InsertValues(new int [1], code);
+                   AddExternLabel(paramTemp.position / 8, parameters[index].ToString());
+               }
+               else
+               {
+                   CanCauseError<int[]> values = CodeTemplate.GetValues(parameters[index], paramTemp, getSymbolValue, this.pointerMaker);
+                   if (values.CausedError)
+                        return values.ConvertError<byte[]>();
+                   paramTemp.InsertValues(values.Result, code);
+                   if (scope.IsLocalLabelExisted(parameters[index].ToString()))
+                   {
+                       localLabels.Add(paramTemp.position / 8, parameters[index].ToString());
+                   }
+                }
         }
       }
       return (CanCauseError<byte[]>) code;

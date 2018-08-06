@@ -33,7 +33,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
 
     CanCauseError<byte[]> GetData(IExpression<int>[] parameters, Func<string, int?> getSymbolValue, ScopeStructure<int> scope);
 
-    Dictionary<int, string> GetLabels();
+    Dictionary<int, string> GetLocalLabels();
+
+    Dictionary<int, string> GetExternLabels();
 
     bool Matches(byte[] data, int offset);
 

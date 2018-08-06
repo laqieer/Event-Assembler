@@ -82,7 +82,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			if (log.ErrorCount == 0) {
 				this.currentOffset = 0;
-				ExecuteLayoutPass (expression, null);
+				ExecuteLayoutPass<BinaryWriter> (expression, null, output);
 			}
 
 			if (log.ErrorCount == 0) {
@@ -119,16 +119,17 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			if (log.ErrorCount == 0) {
 				this.currentOffset = 0;
-				ExecuteLayoutPass (expression, null);
-			}
-
-			if (log.ErrorCount == 0) {
+                // DeclareExternASMCLabels(ExecuteLayoutPass<TextWriter> (expression, null,output), output);
+                ExecuteLayoutPass<TextWriter>(expression, null, output);
+            }
+            
+            if (log.ErrorCount == 0) {
 				this.currentOffset = 0;
 				ExecuteWritePass (output, expression, null);
 			}
 		}
 
-		private void ExecuteLayoutPass(IExpression<int> expression, ScopeStructure<int> scope) {
+		private ScopeStructure<int> ExecuteLayoutPass<T>(IExpression<int> expression, ScopeStructure<int> scope, T output) {
 			switch (expression.Type) {
 
 			case EAExpressionType.Scope:
@@ -137,7 +138,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					scopeStructures [(Scope<int>)expression] = newScope;
 
 					foreach (IExpression<int> child in expression.GetChildren())
-						ExecuteLayoutPass (child, newScope);
+						ExecuteLayoutPass (child, newScope, output);
 
 					break;
 				}
@@ -148,6 +149,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 					if (code.IsEmpty || HandleBuiltInCodeLayout (code, scope))
 						break;
+
+                    if (code.CodeName.Name == "ASMC" && code.Parameters[0].ToString() != "" && !System.Text.RegularExpressions.Regex.IsMatch(code.Parameters[0].ToString(), @"\A\b(0[xX])?[0-9a-fA-F]+\b\Z"))
+                        scope.RegisterASMCLabel(code.Parameters[0].ToString());
 
 					Types.Type[] sig = ((IEnumerable<IExpression<int>>)code.Parameters).Select (new Func<IExpression<int>, Types.Type> (Types.Type.GetType<int>)).ToArray ();
 
@@ -174,7 +178,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 			case EAExpressionType.Labeled:
 				{
 					// record label names
-					scope.SetLabelAddress(((LabelExpression<int>)expression).LabelName, currentOffset);
+					scope.SetLocalLabelAddress(((LabelExpression<int>)expression).LabelName, currentOffset);
 					
 					CanCauseError err = scope.AddNewSymbol (((LabelExpression<int>)expression).LabelName, new ValueExpression<int> (this.currentOffset, new FilePosition ()));
 
@@ -214,9 +218,27 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 				throw new ArgumentException ("Badly formed tree.");
 
 			}
-		}
 
-		private void ExecuteWritePass(BinaryWriter output, IExpression<int> expression, ScopeStructure<int> scope) {
+            // DeclareExternASMCLabels<T>(scope, output);
+            return scope;
+        }
+
+        // private void DeclareExternASMCLabels<T>(ScopeStructure<int> scope, T output)
+        private void DeclareExternASMCLabels(ScopeStructure<int> scope, TextWriter output)
+        {
+            //if (output is TextWriter)
+            if (scope != null)
+                foreach (var label in scope.GetRegisteredASMCLabels())
+                {
+                    if (!scope.IsLocalLabelExisted(label))
+                    {
+                        //(output as TextWriter).WriteLine("\t.global " + label);
+                        output.WriteLine("\t.global " + label);
+                    }
+                }
+        }
+
+        private void ExecuteWritePass(BinaryWriter output, IExpression<int> expression, ScopeStructure<int> scope) {
 			// This is to be executed *after* the layout pass
 
 			switch (expression.Type) {
@@ -315,9 +337,19 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 						break;
 
                     bool TFlag = false;
+                    bool ExtFlag = false;
 
                     if (code.CodeName.Name == "ASMC")
-                        TFlag = true;
+                    {
+                        if (code.Parameters.Length > 0 && code.Parameters[0].ToString() != "" && !scope.IsLocalLabelExisted(code.Parameters[0].ToString()) && !System.Text.RegularExpressions.Regex.IsMatch(code.Parameters[0].ToString(), @"\A\b(0[xX])?[0-9a-fA-F]+\b\Z"))
+                        {
+                            ExtFlag = true;
+                        }
+                        else
+                        {
+                            TFlag = true;
+                        }
+                    }
 
 					// Maybe all of this template lookup up can be made faster by
 					// storing the found template from the layout pass?
@@ -334,28 +366,41 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					// We won't check for alignment as it should already have been done in the layout pass
 
 					ICodeTemplate template = templateError.Result;
+
+                    /*if (template is CodeTemplate && code.Parameters.Length > 0)
+                    {
+                        for (int i = 0; i < code.Parameters.Length; i++)
+                        {
+                            if(scope.GetRegisteredASMCLabels().Exists(o => o == code.Parameters[i].ToString()))
+                            {
+                                (template as CodeTemplate).AddExternLabel(i, code.Parameters[i].ToString());
+                            }
+                        }
+                    }*/
                     
                     CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x), scope);
 
-                    Dictionary<int, string> label = template.GetLabels ();
+                    Dictionary<int, string> localLabels = template.GetLocalLabels ();
+                    Dictionary<int, string> externLabels = template.GetExternLabels();
+                    var labels = localLabels.Union(externLabels).ToList();
 
-					if (data.CausedError)
+                    if (data.CausedError)
 						// Can't compute code data, so we err
 						this.AddError<int, byte[]> (expression, data);
 					else {
 						// Write data
-                        if(label.Count == 0)
+                        if(labels.Count == 0)
                             TryWrite(output, expression, currentOffset, data.Result);
                         else {
                                 int startIndex = 0;
-                                foreach (KeyValuePair<int, string> k in label)
+                                foreach (KeyValuePair<int, string> k in labels)
                                 {
                                     // Console.WriteLine("pos:" + k.Key + " label:" + k.Value);
                                     if (k.Key - startIndex > 0)
                                         TryWrite(output, expression, currentOffset, data.Result.Skip(startIndex).Take(k.Key - startIndex).ToArray());
                                     startIndex = k.Key + 4;
 
-                                    if(TFlag == true)
+                                    if(TFlag == true && scope.IsLocalLabelExisted(k.Value))
                                     {
                                         output.WriteLine("\t.word {0}+1", k.Value);
                                         TFlag = false;
@@ -507,7 +552,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
             for (int i = 0; i < code.Parameters.Length; i++)
             {
                 // support EA macro in inline assembly
-                if (!scope.IsLabelExisted(code.Parameters[i].ToString()) && !scope.GetSymbolValue(code.Parameters[i].ToString()).CausedError)
+                if (!scope.IsLocalLabelExisted(code.Parameters[i].ToString()) && !scope.GetSymbolValue(code.Parameters[i].ToString()).CausedError)
                 {
                     output.Write(" #0x{0:X}", Folding.Fold(code.Parameters[i], (x => this.GetSymbolValue(scope, x))).Result);
                 }
