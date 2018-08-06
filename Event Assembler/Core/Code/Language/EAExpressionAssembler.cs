@@ -252,7 +252,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 					ICodeTemplate template = templateError.Result;
 
-					CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x));
+					CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x), scope);
 
 					if (data.CausedError)
 						// Can't compute code data, so we err
@@ -306,8 +306,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					Code<int> code = expression as Code<int>;
 					
 					// alignment. ALIGN 2^n => .align n
-					if(!code.IsEmpty && code.CodeName.Name == offsetAligner && code.ParameterCount.IsInRange(1, 1) && !(code[0] is ExpressionList<int>)) 
-						output.WriteLine("\t.align {0}", Math.Ceiling(Math.Log(Folding.Fold (code [0], (x => this.GetSymbolValue (scope, x))).Result, 2)));
+					if(!code.IsEmpty && code.CodeName.Name == offsetAligner && code.ParameterCount.IsInRange(1, 1) && !(code.Parameters[0] is ExpressionList<int>)) 
+						output.WriteLine("\t.align {0}", Math.Ceiling(Math.Log(Folding.Fold (code.Parameters[0], (x => this.GetSymbolValue (scope, x))).Result, 2)));
 											
 					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope))
 						break;
@@ -327,19 +327,60 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					// We won't check for alignment as it should already have been done in the layout pass
 
 					ICodeTemplate template = templateError.Result;
-					
-					CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x));
+                    
+                    CanCauseError<byte[]> data = template.GetData (code.Parameters, x => this.GetSymbolValue (scope, x), scope);
+
+                    Dictionary<int, string> label = template.GetLabels ();
 
 					if (data.CausedError)
 						// Can't compute code data, so we err
 						this.AddError<int, byte[]> (expression, data);
 					else {
 						// Write data
-						TryWrite (output, expression, currentOffset, data.Result);
-						this.currentOffset += data.Result.Length;
-					}
+                        if(label.Count == 0)
+                            TryWrite(output, expression, currentOffset, data.Result);
+                        else {
+                                int startIndex = 0;
+                                foreach (KeyValuePair<int, string> k in label)
+                                {
+                                    // Console.WriteLine("pos:" + k.Key + " label:" + k.Value);
+                                    if (k.Key - startIndex > 0)
+                                        TryWrite(output, expression, currentOffset, data.Result.Skip(startIndex).Take(k.Key - startIndex).ToArray());
+                                    startIndex = k.Key + 4;
+                                    output.WriteLine("\t.word {0}", k.Value);
+                                }
+                                if (data.Result.Length - startIndex > 4)
+                                    TryWrite(output, expression, currentOffset, data.Result.Skip(startIndex).Take(data.Result.Length - startIndex).ToArray());
+                            }
+                          }
 
-					break;
+                    this.currentOffset += data.Result.Length;
+
+                        /*for (int i = 0; i < code.Parameters.Length; i++)
+                        {
+                            // Console.WriteLine(code.Parameters[i]);
+                            if (scope.IsLabelExisted(code.Parameters[i].ToString()))
+                            {
+                                output.WriteLine("\t.word {0}", code.Parameters[i]);
+                                this.currentOffset += 4;
+                            }
+                            else
+                            {
+                                IExpression<int>[] parameter = new IExpression<int>[] { code.Parameters[i] };
+                                CanCauseError<byte[]> data = template.GetDataUnit(parameter, x => this.GetSymbolValue(scope, x));
+                                if (data.CausedError)
+                                    // Can't compute code data, so we err
+                                    this.AddError<int, byte[]>(expression, data);
+                                else
+                                {
+                                    // Write data
+                                    TryWrite(output, expression, currentOffset, data.Result);
+                                    this.currentOffset += data.Result.Length;
+                                }
+                            }
+                        }*/
+
+                        break;
 				}
 
 			case EAExpressionType.RawData:

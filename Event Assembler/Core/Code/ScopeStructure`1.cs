@@ -67,7 +67,14 @@ namespace Nintenlord.Event_Assembler.Core.Code
     		labels.Add(labelName, labelAddress);
     }
 
-    public bool IsGlobalScope()
+    public bool IsLabelExisted(string labelName)
+    {
+        if (labels.ContainsKey(labelName))
+            return true;
+        return false;
+    }
+
+        public bool IsGlobalScope()
     {
       return (ParentScope == null);
     }

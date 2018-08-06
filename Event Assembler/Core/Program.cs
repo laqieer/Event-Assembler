@@ -813,7 +813,11 @@ namespace Nintenlord.Event_Assembler.Core
 						}
 
 						using (StreamWriter output = new StreamWriter(outFile, false, Encoding.Default)) {
-							if (!Program.CodesLoaded)
+                            // Make entry point label global to call in C source file
+                            output.WriteLine("\t.global " + Path.GetFileName(outFile).Replace(".", "_"));
+                            output.WriteLine(Path.GetFileName(outFile).Replace(".", "_") + ":");
+
+                            if (!Program.CodesLoaded)
 								LoadCodes (false);
 							
 							// Console.WriteLine("language: {0}", Program.RunConfig.language);
