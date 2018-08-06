@@ -305,11 +305,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 				{
 					Code<int> code = expression as Code<int>;
 					
-					// alignment
-					if(!code.IsEmpty && code.CodeName.Name == offsetAligner) 
-						// output.WriteLine("\t.align {0}", code[0]);
-						//TODO .align n
-						output.WriteLine("\t.align");
+					// alignment. ALIGN 2^n => .align n
+					if(!code.IsEmpty && code.CodeName.Name == offsetAligner && code.ParameterCount.IsInRange(1, 1) && !(code[0] is ExpressionList<int>)) 
+						output.WriteLine("\t.align {0}", Math.Ceiling(Math.Log(Folding.Fold (code [0], (x => this.GetSymbolValue (scope, x))).Result, 2)));
 											
 					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope))
 						break;

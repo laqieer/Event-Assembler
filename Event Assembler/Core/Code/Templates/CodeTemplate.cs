@@ -292,7 +292,6 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
         numArray = new int[expressionList.ComponentCount];
         for (int index = 0; index < expressionList.ComponentCount; ++index)
         {
-        //TODO return CanCauseError<int[]>(labelName) for labels, string => char[] => int[]
           CanCauseError<int> canCauseError = Folding.Fold(expressionList[index], getSymbolValue);
           if (canCauseError.CausedError)
             return canCauseError.ConvertError<int[]>();
@@ -301,8 +300,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
       }
       else
       {
-      	//TODO return CanCauseError<int[]>(labelName) for labels, string => char[] => int[]
-        CanCauseError<int> canCauseError = Folding.Fold(parameter, getSymbolValue);
+      	CanCauseError<int> canCauseError = Folding.Fold(parameter, getSymbolValue);
         if (canCauseError.CausedError)
           return canCauseError.ConvertError<int[]>();
         if (paramTemp.pointer && pointerMaker != null)
