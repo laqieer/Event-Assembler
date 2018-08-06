@@ -314,6 +314,11 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 					if (code.IsEmpty || HandleBuiltInCodeWrite (code, scope, output))
 						break;
 
+                    bool TFlag = false;
+
+                    if (code.CodeName.Name == "ASMC")
+                        TFlag = true;
+
 					// Maybe all of this template lookup up can be made faster by
 					// storing the found template from the layout pass?
 
@@ -349,7 +354,14 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                                     if (k.Key - startIndex > 0)
                                         TryWrite(output, expression, currentOffset, data.Result.Skip(startIndex).Take(k.Key - startIndex).ToArray());
                                     startIndex = k.Key + 4;
-                                    output.WriteLine("\t.word {0}", k.Value);
+
+                                    if(TFlag == true)
+                                    {
+                                        output.WriteLine("\t.word {0}+1", k.Value);
+                                        TFlag = false;
+                                    }
+                                    else
+                                        output.WriteLine("\t.word {0}", k.Value);
                                 }
                                 if (data.Result.Length - startIndex > 4)
                                     TryWrite(output, expression, currentOffset, data.Result.Skip(startIndex).Take(data.Result.Length - startIndex).ToArray());
@@ -541,14 +553,14 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
         private void HandleThumbAssembly(Code<int> code, ScopeStructure<int> scope, TextWriter output)
         {
-            /* output.WriteLine("/t .thumb");
-            output.WriteLine("/t .thumb_func"); */
+            // output.WriteLine("\t .thumb");
+            // output.WriteLine("\t .thumb_func");
             PrintAssemblyCode(code, scope, output);
         }
 
         private void HandleARMAssembly(Code<int> code, ScopeStructure<int> scope, TextWriter output)
         {
-            // output.WriteLine("/t .arm");
+            // output.WriteLine("\t .arm");
             PrintAssemblyCode(code, scope, output);
         }
 

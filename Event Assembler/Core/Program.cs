@@ -816,8 +816,8 @@ namespace Nintenlord.Event_Assembler.Core
                             // Make entry point label global to call in C source file
                             //TODO support ARM?
                             output.WriteLine("\t.thumb");
-                            output.WriteLine("\t.global " + Path.GetFileName(outFile).Replace(".", "_"));
-                            output.WriteLine(Path.GetFileName(outFile).Replace(".", "_") + ":");
+                            output.WriteLine("\t.global " + Path.GetFileNameWithoutExtension(outFile).Replace(".", "_"));
+                            output.WriteLine(Path.GetFileNameWithoutExtension(outFile).Replace(".", "_") + ":");
 
                             if (!Program.CodesLoaded)
 								LoadCodes (false);
