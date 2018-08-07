@@ -37,6 +37,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
         private const string ThumbAssembly = "T";
         private const string ARMAssembly = "A";
         private const string ExternSymbol = "EXTERN";
+        private const string GlobalSymbol = "GLOBAL";
         private readonly IParser<Token, IExpression<int>> parser;
 		private readonly ICodeTemplateStorer storer;
 		private ILog log;
@@ -548,6 +549,9 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                     AddWarning((IExpression<int>)code, err.ErrorMessage);
                 return true;
 
+            case GlobalSymbol:
+                return true;
+
 			default:
 				return false;
 
@@ -668,6 +672,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 output.WriteLine("\t.extern {0}", code.Parameters[0]);
                 return true;
 
+            case GlobalSymbol:
+                output.WriteLine("\t.global {0}", code.Parameters[0]);
+                return true;
+
 			default:
 				return false;
 
@@ -717,6 +725,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
                 case ThumbAssembly:
                 case ARMAssembly:
+                case ExternSymbol:
+                case GlobalSymbol:
                     return true;
 
                 default:
