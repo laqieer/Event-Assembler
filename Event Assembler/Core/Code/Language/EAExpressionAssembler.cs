@@ -36,6 +36,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 		private const string protectCode = "PROTECT";
         private const string ThumbAssembly = "T";
         private const string ARMAssembly = "A";
+        private const string ExternSymbol = "EXTERN";
         private readonly IParser<Token, IExpression<int>> parser;
 		private readonly ICodeTemplateStorer storer;
 		private ILog log;
@@ -337,13 +338,13 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 						break;
 
                     bool TFlag = false;
-                    bool ExtFlag = false;
+                    // bool ExtFlag = false;
 
                     if (code.CodeName.Name == "ASMC")
                     {
                         if (code.Parameters.Length > 0 && code.Parameters[0].ToString() != "" && !scope.IsLocalLabelExisted(code.Parameters[0].ToString()) && !System.Text.RegularExpressions.Regex.IsMatch(code.Parameters[0].ToString(), @"\A\b(0[xX])?[0-9a-fA-F]+\b\Z"))
                         {
-                            ExtFlag = true;
+                            // ExtFlag = true;
                         }
                         else
                         {
@@ -540,6 +541,13 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
             case ARMAssembly:
                 return true;
 
+            case ExternSymbol:
+                CanCauseError err = scope.AddNewSymbol(code.Parameters[0].ToString(), new ValueExpression<int>(-1, new FilePosition()));
+
+                if (err.CausedError)
+                    AddWarning((IExpression<int>)code, err.ErrorMessage);
+                return true;
+
 			default:
 				return false;
 
@@ -654,6 +662,10 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
             case ARMAssembly:
                 HandleARMAssembly (code, scope, output);
+                return true;
+
+            case ExternSymbol:
+                output.WriteLine("\t.extern {0}", code.Parameters[0]);
                 return true;
 
 			default:
