@@ -154,8 +154,17 @@ namespace Nintenlord.Event_Assembler.Core.Code
             if(language == "FE7J")
             {
                 // if (doc.code.ID == 0x3E)
-                    // FixRoutine(doc, language);
+                // FixRoutine(doc, language);
                 // Console.WriteLine(language);
+                /* FE7J and FE7U are troublesome because the instruction codes are irregularly shifted.
+                 * Looking from FE7J,
+                 * 0x01 - 0x16 shift + 0
+                 * 0x17 - 0x18 shift + 1
+                 * 0x19 - 0xA6 shift + 2
+                 * 0xAB - 0xCC shift - 1
+                 * 0xD2 - 0xDB shift - 3
+                 * 0xDC - 0xEB shift - 4
+                 * For details, see event_FE7.txt.*/
                 if (doc.code.ID == 0xE2)
                     doc.code.ID += 2;
                 else
