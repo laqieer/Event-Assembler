@@ -101,7 +101,8 @@ namespace Nintenlord.Event_Assembler.Core.Code
           
 					foreach (string language in doc.languages) {
 						this.AddCode (doc, language);
-					}
+                        // this.FixCode(doc, language);
+                    }
 
 					this.docs.GetOldOrSetNew<string, List<LanguageProcessor.DocCode>> (file.Replace ('\\', '.')).Add (doc);
 				}
@@ -114,15 +115,23 @@ namespace Nintenlord.Event_Assembler.Core.Code
 					LanguageProcessor.DocCode doc = this.MakeCode ((IList<LanguageProcessor.LanguageElement>)languageElementList, ref index);
 
 					foreach (string language in doc.languages)
-						this.AddCode (doc, language);
+                    {
+                        this.AddCode(doc, language);
+                        // this.FixCode(doc, language);
+                    }
 					
 				}
 			}
 		}
 
-		private void AddCode (LanguageProcessor.DocCode doc, string language)
+		private void AddCode (LanguageProcessor.DocCode doc_, string language)
 		{
-			ICodeTemplateStorer codeTemplateStorer;
+            /*var doc = new DocCode();
+            doc = doc_;*/
+            // var doc = Program.DeepCopyWithXmlSerializer<DocCode>(doc_);
+            var doc = doc_.CopyCode();
+            FixCode(ref doc, language);
+            ICodeTemplateStorer codeTemplateStorer;
 			if (!this.languages.TryGetValue (language, out codeTemplateStorer))
 				this.languages [language] = (ICodeTemplateStorer)new CodeTemplateStorer (this.templateComparer);
 			this.languages [language].AddCode (doc.code, doc.priority);
@@ -136,9 +145,54 @@ namespace Nintenlord.Event_Assembler.Core.Code
 					this.languages [language].AddCode (twoByte, doc.priority);
 				}
 			}
+            // Console.WriteLine("{0}: {1} {2}", language, doc.code.Name, doc.code.ID);
 		}
 
-		private LanguageProcessor.DocCode MakeCode (IList<LanguageProcessor.LanguageElement> elements, ref int index)
+        // Fix code for JP version
+        private void FixCode(ref LanguageProcessor.DocCode doc, string language)
+        {
+            if(language == "FE7J")
+            {
+                // if (doc.code.ID == 0x3E)
+                    // FixRoutine(doc, language);
+                // Console.WriteLine(language);
+                if (doc.code.ID == 0xE2)
+                    doc.code.ID += 2;
+                else
+                    if (doc.code.ID > 0xE0)
+                        doc.code.ID += 5;
+                    else
+                        if (doc.code.ID > 0xD8)
+                            doc.code.ID += 4;
+                        else
+                            if (doc.code.ID > 0xCE)
+                                doc.code.ID += 3;
+                            else
+                                if (doc.code.ID > 0xA9)
+                                    doc.code.ID += 1;
+                                else
+                                    if (doc.code.ID > 0x19)
+                                        doc.code.ID -= 2;
+                                    else
+                                        if(doc.code.ID > 0x17)
+                                            doc.code.ID -= 1;
+                    return;
+            }
+            if (language == "FE8J")
+            {
+                // It seems that everything except routines is the same, so do nothing here
+                return;
+            }
+        }
+
+        // Fix routine for JP version
+        // The routine is not available here
+        /*private void FixRoutine(LanguageProcessor.DocCode doc, string language)
+        {
+            
+        }*/
+
+        private LanguageProcessor.DocCode MakeCode (IList<LanguageProcessor.LanguageElement> elements, ref int index)
 		{
 			List<LanguageProcessor.LanguageElement> languageElementList = new List<LanguageProcessor.LanguageElement> ();
 			do {
@@ -178,7 +232,11 @@ namespace Nintenlord.Event_Assembler.Core.Code
 				if (flag2.StartsWith ("language") || flag2.StartsWith ("game")) {
 					string[] strArray = flag2.Split (new char[1]{ ':' }, StringSplitOptions.RemoveEmptyEntries);
 					for (int index = 1; index < strArray.Length; ++index)
-						usedLanguages.Add (strArray [index].Trim ());
+                    {
+                        if(strArray[index] == "FE7" || strArray[index] == "FE8")
+                            usedLanguages.Add(strArray[index] + "J".Trim());
+                        usedLanguages.Add(strArray[index].Trim());
+                    }
 				} else if (flag2.StartsWith ("priority")) {
 					int num4 = flag2.IndexOf (':');
 					string str = flag2.Substring (num4 + 1);
@@ -472,7 +530,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
 			}
 		}
 
-		private struct DocCode
+		public struct DocCode
 		{
 			public List<string> mainDoc;
 			public string[] languages;
@@ -484,6 +542,15 @@ namespace Nintenlord.Event_Assembler.Core.Code
 			{
 				return this.code.ToString ();
 			}
+
+            public DocCode CopyCode ()
+            {
+                var doc = new DocCode();
+                doc = this;
+                doc.code = (ICodeTemplate)this.code.Clone();
+
+                return doc;
+            }
 		}
 	}
 }
