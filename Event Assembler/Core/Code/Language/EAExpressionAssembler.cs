@@ -38,6 +38,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
         private const string ARMAssembly = "A";
         private const string ExternSymbol = "EXTERN";
         private const string GlobalSymbol = "GLOBAL";
+        private const string sectionMaker = "SECTION";
         private readonly IParser<Token, IExpression<int>> parser;
 		private readonly ICodeTemplateStorer storer;
 		private ILog log;
@@ -550,6 +551,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 return true;
 
             case GlobalSymbol:
+            case sectionMaker:
                 return true;
 
 			default:
@@ -676,8 +678,12 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 output.WriteLine("\t.global {0}", code.Parameters[0]);
                 return true;
 
-			default:
-				return false;
+            case sectionMaker:
+                output.WriteLine("@section {0} {1}", code.Parameters[0], code.Parameters[1]);
+                return true;
+
+            default:
+			return false;
 
 			}
 		}
@@ -727,6 +733,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 case ARMAssembly:
                 case ExternSymbol:
                 case GlobalSymbol:
+                case sectionMaker:
                     return true;
 
                 default:
