@@ -679,7 +679,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 return true;
 
             case sectionMaker:
-                output.WriteLine("@section {0} {1}", code.Parameters[0], code.Parameters[1]);
+                output.WriteLine("@section {0} 0x{1:X}", code.Parameters[0], Convert.ToInt32(code.Parameters[1].ToString()));
                 return true;
 
             default:
