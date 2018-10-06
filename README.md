@@ -13,8 +13,9 @@ Supported *game_version* list:
 
 # Syntax differences in C mode:
 * Extended syntax:
-	+ EXPORT
+	+ GLOABL
 	+ EXTERN
+	+ SECTION
 * Disabled syntax:
 	- ORG
 	- PUSH
