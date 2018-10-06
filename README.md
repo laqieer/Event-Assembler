@@ -2,7 +2,7 @@ To respect Nintenlord and Crazycolorz5, I put what I need to say here.
 
 # Convert event scripts to assembly source files (C mode):
 ```
-Core.exe C *game_ver* -input:*xxx*.event -output:*xxx*.s
+Core.exe C \*game_ver\* -input:xxx.event -output:xxx.s
 ```
 Supported *game_ver* list:
 - FE6
@@ -21,5 +21,5 @@ Supported *game_ver* list:
 	- POP
 	
 # Inline assembly:
-Begin with "T"
+Begin with "T".
 Experimental. Not supposed to use.
