@@ -2,9 +2,9 @@ To respect Nintenlord and Crazycolorz5, I put what I need to say here.
 
 # Convert event scripts to assembly source files (C mode):
 ```
-Core.exe C \*game_ver\* -input:xxx.event -output:xxx.s
+Core.exe C game_version -input:xxx.event -output:xxx.s
 ```
-Supported *game_ver* list:
+Supported *game_version* list:
 - FE6
 - FE7
 - FE7J
