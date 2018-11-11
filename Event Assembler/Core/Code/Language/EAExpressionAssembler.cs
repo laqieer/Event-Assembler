@@ -39,6 +39,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
         private const string ExternSymbol = "EXTERN";
         private const string GlobalSymbol = "GLOBAL";
         private const string sectionMaker = "SECTION";
+        private const string sectionEnd = "ENDSECTION";
         private readonly IParser<Token, IExpression<int>> parser;
 		private readonly ICodeTemplateStorer storer;
 		private ILog log;
@@ -552,7 +553,8 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
             case GlobalSymbol:
             case sectionMaker:
-                return true;
+            case sectionEnd:
+                    return true;
 
 			default:
 				return false;
@@ -645,15 +647,19 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			case offsetChanger:
 				HandleBuiltInOffsetChange (code, scope);
-				return true;
+                if(Program.RunConfig.org)
+                    output.WriteLine(".previous\n@section org_{0:X} 0x{0:X}+0x8000000", Convert.ToInt32(code.Parameters[0].ToString()));
+                return true;
 
 			case offsetPusher:
 				HandleBuiltInOffsetPush (code, scope);
-				return true;
+                output.WriteLine(".pushsection");
+                return true;
 
 			case offsetPopper:
 				HandleBuiltInOffsetPop (code, scope);
-				return true;
+                output.WriteLine(".popsection");
+                return true;
 
 			case assertion:
 				HandleBuiltInAssert (code, scope);
@@ -682,7 +688,11 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 output.WriteLine("@section {0} 0x{1:X}", code.Parameters[0], Convert.ToInt32(code.Parameters[1].ToString()));
                 return true;
 
-            default:
+            case sectionEnd:
+                output.WriteLine(".previous");
+                return true;
+
+                default:
 			return false;
 
 			}
@@ -734,6 +744,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
                 case ExternSymbol:
                 case GlobalSymbol:
                 case sectionMaker:
+                case sectionEnd:
                     return true;
 
                 default:

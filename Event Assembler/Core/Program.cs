@@ -61,8 +61,9 @@ namespace Nintenlord.Event_Assembler.Core
 			public RunExecType execType;
 
 			public bool quiet = false;
+            public bool org = true;
 
-			public string language = null;
+            public string language = null;
 			public string rawsFolder = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, "Language Raws");
 			public string rawsExtension = ".txt";
 			public bool isDirectory = true;
@@ -317,8 +318,15 @@ namespace Nintenlord.Event_Assembler.Core
 					continue;
 				}
 
-				// -raws <file>
-				if (it.Current.Equals ("-raws")) {
+                // ignore ORG
+                if (it.Current.Equals("-ignoreORG"))
+                {
+                    result.org = false;
+                    continue;
+                }
+
+                // -raws <file>
+                if (it.Current.Equals ("-raws")) {
 					if (!it.MoveNext ()) {
 						log.AddError ("`-raws` passed without specifying a path.");
 						return null;
