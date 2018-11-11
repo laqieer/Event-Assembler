@@ -16,10 +16,8 @@ Supported *game_version* list:
 	+ GLOABL
 	+ EXTERN
 	+ SECTION
-* Disabled syntax:
-	- ORG
-	- PUSH
-	- POP
+	+ ENDSECTION
+* ORG can be skipped by -ignoreORG option
 	
 # Inline assembly:
 Begin with "T".
