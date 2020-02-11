@@ -26,14 +26,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language.Expression.Tree
             }
         }
 
-        // public FilePosition Position => pos;
-        public FilePosition Position
-        {
-        	get
-        	{
-        		return pos;
-        	}
-        }
+        public FilePosition Position => pos;
 
         public Assignment(string name, IExpression<T> value, FilePosition position)
         {
