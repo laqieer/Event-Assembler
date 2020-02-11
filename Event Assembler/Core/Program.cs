@@ -842,6 +842,7 @@ namespace Nintenlord.Event_Assembler.Core
                             // Make entry point label global to call in C source file
                             //TODO support ARM?
                             output.WriteLine("\t.section .rodata");
+                            output.WriteLine("\t.align 2");
                             output.WriteLine("\t.global " + Path.GetFileNameWithoutExtension(outFile).Replace(".", "_"));
                             output.WriteLine(Path.GetFileNameWithoutExtension(outFile).Replace(".", "_") + ":");
 
