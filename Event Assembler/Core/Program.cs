@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
-using System.Xml.Serialization;
 
 namespace Nintenlord.Event_Assembler.Core
 {
@@ -28,23 +27,6 @@ namespace Nintenlord.Event_Assembler.Core
 
 		private static IDictionary<string, EACodeLanguage> languages;
 		private static ProgramRunConfig runConfig = new ProgramRunConfig ();
-
-        // deep copy
-        // 利用XML序列化和反序列化实现
-        public static T DeepCopyWithXmlSerializer<T>(T obj)
-        {
-            object retval;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                XmlSerializer xml = new XmlSerializer(typeof(T));
-                xml.Serialize(ms, obj);
-                ms.Seek(0, SeekOrigin.Begin);
-                retval = xml.Deserialize(ms);
-                ms.Close();
-            }
-
-            return (T)retval;
-        }
 
 		public class ProgramRunConfig
 		{
@@ -757,8 +739,7 @@ namespace Nintenlord.Event_Assembler.Core
 							
 							EACodeLanguage language = Program.languages [Program.RunConfig.language];
 
-							EAExpressionAssembler assembler = new EAExpressionAssembler (language.CodeStorage, new TokenParser<int> (new Func<string, int> (StringExtensions.GetValue)));
-							assembler.Assemble (inputStream, output, log);
+							language.Assemble (inputStream, output, log);
 
 							if (Program.RunConfig.symbolOutputFile != null) {
 								// Outputting global symbols to another file
@@ -769,7 +750,7 @@ namespace Nintenlord.Event_Assembler.Core
 
 									using (FileStream fileStream = File.OpenWrite (Program.RunConfig.symbolOutputFile))
 									using (StreamWriter symOut = new StreamWriter (fileStream))
-										foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
+										foreach (KeyValuePair<string, int> symbol in language.GetGlobalSymbols())
 											symOut.WriteLine ("{0}={1}", symbol.Key, symbol.Value.ToHexString ("$"));
 								} catch (Exception e) {
 									log.AddError (e.ToString ());
@@ -841,10 +822,9 @@ namespace Nintenlord.Event_Assembler.Core
 						using (StreamWriter output = new StreamWriter(outFile, false, Encoding.Default)) {
                             // Make entry point label global to call in C source file
                             //TODO support ARM?
-                            output.WriteLine("\t.thumb");
+                            output.WriteLine("\t.section .rodata");
+                            output.WriteLine("\t.align 2");
                             output.WriteLine("\t.global " + Path.GetFileNameWithoutExtension(outFile).Replace(".", "_"));
-                            output.WriteLine("\t.include \"event_func_Thumb.inc\"");
-                            output.WriteLine("\t.include \"event_func_C.inc\"");
                             output.WriteLine(Path.GetFileNameWithoutExtension(outFile).Replace(".", "_") + ":");
 
                             if (!Program.CodesLoaded)
@@ -853,8 +833,7 @@ namespace Nintenlord.Event_Assembler.Core
 							// Console.WriteLine("language: {0}", Program.RunConfig.language);
 							EACodeLanguage language = Program.languages [Program.RunConfig.language];
 
-							EAExpressionAssembler assembler = new EAExpressionAssembler (language.CodeStorage, new TokenParser<int> (new Func<string, int> (StringExtensions.GetValue)));
-							assembler.Compile (inputStream, output, log);
+							language.Compile (inputStream, output, log);
 
 							if (Program.RunConfig.symbolOutputFile != null) {
 								// Outputting global symbols to another file
@@ -865,7 +844,7 @@ namespace Nintenlord.Event_Assembler.Core
 
 									using (FileStream fileStream = File.OpenWrite (Program.RunConfig.symbolOutputFile))
 									using (StreamWriter symOut = new StreamWriter (fileStream))
-										foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
+										foreach (KeyValuePair<string, int> symbol in language.GetGlobalSymbols())
 											symOut.WriteLine ("{0}={1}", symbol.Key, symbol.Value.ToHexString ("$"));
 								} catch (Exception e) {
 									log.AddError (e.ToString ());
@@ -1015,13 +994,12 @@ namespace Nintenlord.Event_Assembler.Core
 					break;
 
 				case "FE7":
-                case "FE7J":
+				case "FE7J":
 					pointerList = FE7CodeLanguage.PointerList;
 					break;
 
 				case "FE8":
-                case "FE8J":
-					// pointerList = DummyCodeLanguage.PointerList;
+				case "FE8J":
 					pointerList = FE8CodeLanguage.PointerList;
 					break;
 

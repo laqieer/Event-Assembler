@@ -16,7 +16,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
 {
   internal sealed class TerminatingStringTemplate : ICodeTemplate, INamed<string>, IParameterized
     {
-        public int ID { get { return -1; } set { } }
+        public int ID { get { return -1; } }
         public ICodeTemplate CopyWithNewName(string s) {
             List <TemplateParameter> newParams = new List<TemplateParameter>();
             newParams.Add(this.parameter);
@@ -186,10 +186,5 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     {
       writer.WriteLine("{0} {1}1 {1}2 ... {1}N", (object) template.name, (object) template.parameter.name);
     }
-
-    public object Clone()
-    {
-        return this.MemberwiseClone();
-    }
-    }
+  }
 }
