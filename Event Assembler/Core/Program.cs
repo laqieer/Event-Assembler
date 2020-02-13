@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
-using System.Xml.Serialization;
 
 namespace Nintenlord.Event_Assembler.Core
 {
@@ -28,23 +27,6 @@ namespace Nintenlord.Event_Assembler.Core
 
 		private static IDictionary<string, EACodeLanguage> languages;
 		private static ProgramRunConfig runConfig = new ProgramRunConfig ();
-
-        // deep copy
-        // 利用XML序列化和反序列化实现
-        public static T DeepCopyWithXmlSerializer<T>(T obj)
-        {
-            object retval;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                XmlSerializer xml = new XmlSerializer(typeof(T));
-                xml.Serialize(ms, obj);
-                ms.Seek(0, SeekOrigin.Begin);
-                retval = xml.Deserialize(ms);
-                ms.Close();
-            }
-
-            return (T)retval;
-        }
 
 		public class ProgramRunConfig
 		{
@@ -1012,12 +994,10 @@ namespace Nintenlord.Event_Assembler.Core
 					break;
 
 				case "FE7":
-                case "FE7J":
 					pointerList = FE7CodeLanguage.PointerList;
 					break;
 
 				case "FE8":
-                case "FE8J":
 					// pointerList = DummyCodeLanguage.PointerList;
 					pointerList = FE8CodeLanguage.PointerList;
 					break;

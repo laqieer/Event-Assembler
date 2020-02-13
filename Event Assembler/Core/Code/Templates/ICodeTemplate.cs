@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace Nintenlord.Event_Assembler.Core.Code.Templates
 {
-  public interface ICodeTemplate : INamed<string>, IParameterized, ICloneable
+  public interface ICodeTemplate : INamed<string>, IParameterized
   {
     int MaxRepetition { get; }
 
@@ -21,7 +21,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
 
     int AmountOfFixedCode { get; }
 
-    int ID { get; set; }
+    int ID { get; }
 
     bool CanBeDisassembled { get; set; }
 
