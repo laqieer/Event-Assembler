@@ -757,8 +757,7 @@ namespace Nintenlord.Event_Assembler.Core
 							
 							EACodeLanguage language = Program.languages [Program.RunConfig.language];
 
-							EAExpressionAssembler assembler = new EAExpressionAssembler (language.CodeStorage, new TokenParser<int> (new Func<string, int> (StringExtensions.GetValue)));
-							assembler.Assemble (inputStream, output, log);
+							language.Assemble (inputStream, output, log);
 
 							if (Program.RunConfig.symbolOutputFile != null) {
 								// Outputting global symbols to another file
@@ -769,7 +768,7 @@ namespace Nintenlord.Event_Assembler.Core
 
 									using (FileStream fileStream = File.OpenWrite (Program.RunConfig.symbolOutputFile))
 									using (StreamWriter symOut = new StreamWriter (fileStream))
-										foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
+										foreach (KeyValuePair<string, int> symbol in language.GetGlobalSymbols())
 											symOut.WriteLine ("{0}={1}", symbol.Key, symbol.Value.ToHexString ("$"));
 								} catch (Exception e) {
 									log.AddError (e.ToString ());
@@ -841,10 +840,9 @@ namespace Nintenlord.Event_Assembler.Core
 						using (StreamWriter output = new StreamWriter(outFile, false, Encoding.Default)) {
                             // Make entry point label global to call in C source file
                             //TODO support ARM?
-                            output.WriteLine("\t.thumb");
+                            output.WriteLine("\t.section .rodata");
+                            output.WriteLine("\t.align 2");
                             output.WriteLine("\t.global " + Path.GetFileNameWithoutExtension(outFile).Replace(".", "_"));
-                            output.WriteLine("\t.include \"event_func_Thumb.inc\"");
-                            output.WriteLine("\t.include \"event_func_C.inc\"");
                             output.WriteLine(Path.GetFileNameWithoutExtension(outFile).Replace(".", "_") + ":");
 
                             if (!Program.CodesLoaded)
@@ -853,8 +851,7 @@ namespace Nintenlord.Event_Assembler.Core
 							// Console.WriteLine("language: {0}", Program.RunConfig.language);
 							EACodeLanguage language = Program.languages [Program.RunConfig.language];
 
-							EAExpressionAssembler assembler = new EAExpressionAssembler (language.CodeStorage, new TokenParser<int> (new Func<string, int> (StringExtensions.GetValue)));
-							assembler.Compile (inputStream, output, log);
+							language.Compile (inputStream, output, log);
 
 							if (Program.RunConfig.symbolOutputFile != null) {
 								// Outputting global symbols to another file
@@ -865,7 +862,7 @@ namespace Nintenlord.Event_Assembler.Core
 
 									using (FileStream fileStream = File.OpenWrite (Program.RunConfig.symbolOutputFile))
 									using (StreamWriter symOut = new StreamWriter (fileStream))
-										foreach (KeyValuePair<string, int> symbol in assembler.GetGlobalSymbols())
+										foreach (KeyValuePair<string, int> symbol in language.GetGlobalSymbols())
 											symOut.WriteLine ("{0}={1}", symbol.Key, symbol.Value.ToHexString ("$"));
 								} catch (Exception e) {
 									log.AddError (e.ToString ());
