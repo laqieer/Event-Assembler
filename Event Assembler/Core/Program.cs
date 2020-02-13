@@ -994,11 +994,12 @@ namespace Nintenlord.Event_Assembler.Core
 					break;
 
 				case "FE7":
+				case "FE7J":
 					pointerList = FE7CodeLanguage.PointerList;
 					break;
 
 				case "FE8":
-					// pointerList = DummyCodeLanguage.PointerList;
+				case "FE8J":
 					pointerList = FE8CodeLanguage.PointerList;
 					break;
 
