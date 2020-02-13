@@ -24,8 +24,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
   {
     private readonly string name;
     private readonly int lenght;
-    // private readonly int id;
-    public int id;
+    private readonly int id;
     private readonly byte[] baseData;
     private readonly bool canBeRepeated;
     private readonly bool checkForProblems;
@@ -135,7 +134,6 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     public int ID
     {
         get { return this.id; }
-        set { id = value; }
     }
 
     public bool EndingCode
@@ -550,11 +548,6 @@ namespace Nintenlord.Event_Assembler.Core.Code.Templates
     public ICodeTemplate CopyWithNewName(string name)
     {
         return new CodeTemplate(name, this.id, this.lenght, this.parameters, this.canBeRepeated, this.checkForProblems, this.EndingCode, this.offsetMod, this.canBeAssembled, this.canBeDisassembled, this.comparer);
-    }
-
-    public object Clone()
-    {
-        return this.MemberwiseClone();
     }
   }
 }
