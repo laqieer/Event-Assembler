@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Diagnostics.Contracts;
 
 namespace Nintenlord.Utility
 {
@@ -41,7 +40,8 @@ namespace Nintenlord.Utility
 
             public DirtyBufferUser(SharedDirtyBuffer<T> listToUse)
             {
-                Contract.Requires<ArgumentException>(!listToUse.InUse, "Argument listToUse is already in use.");
+                if (listToUse.InUse)
+                    throw new ArgumentException("Argument listToUse is already in use.");
 
                 this.listToUse = listToUse;
                 this.listToUse.InUse = true;

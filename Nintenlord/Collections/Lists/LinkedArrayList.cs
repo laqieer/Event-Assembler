@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Nintenlord.Utility.Primitives;
-using System.Diagnostics.Contracts;
 
 namespace Nintenlord.Collections.Lists
 {
@@ -22,8 +21,8 @@ namespace Nintenlord.Collections.Lists
         {
             get
             {
-                Contract.Requires<InvalidOperationException>
-                    (count > 0, "Can't take the first of empty collection.");
+                if (count <= 0) 
+                    throw new Exception("Can't take the first of empty collection.");
 
                 return items[firstReservedIndex];
             }
@@ -32,8 +31,9 @@ namespace Nintenlord.Collections.Lists
         {
             get
             {
-                Contract.Requires<InvalidOperationException>
-                    (count > 0, "Can't take the last of empty collection.");
+
+                if (count <= 0)
+                    throw new Exception("Can't take the last of empty collection.");
 
                 return firstFreeIndex > 0 ? items[firstFreeIndex - 1] : items[items.Length - 1];
             }
@@ -191,7 +191,8 @@ namespace Nintenlord.Collections.Lists
 
         private void InsertAtInternalIndex(int internalIndex, T item)
         {
-            Contract.Requires(count < items.Length);
+            if (count >= items.Length)
+                throw new Exception("No enough room to insert.");
             //There is always room on the array at this point
 
             if (firstReservedIndex < firstFreeIndex)
@@ -447,7 +448,8 @@ namespace Nintenlord.Collections.Lists
 
         public void Insert(int index, T item)
         {
-            Contract.Requires<IndexOutOfRangeException>(index >= 0 && index <= count);
+            if (index < 0 || index > count)
+                throw new IndexOutOfRangeException();
 
             if (index == count)
             {
@@ -465,7 +467,8 @@ namespace Nintenlord.Collections.Lists
 
         public void RemoveAt(int index)
         {
-            Contract.Requires<IndexOutOfRangeException>(index >= 0 && index < count);
+            if (index < 0 || index >= count)
+                throw new IndexOutOfRangeException();
 
             RemoveAtInternal(ToInternalIndex(index));
         }
