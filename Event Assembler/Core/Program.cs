@@ -47,7 +47,8 @@ namespace Nintenlord.Event_Assembler.Core
 
             public string language = null;
 			public string rawsFolder = Path.Combine (AppDomain.CurrentDomain.BaseDirectory, "Language Raws");
-			public string rawsExtension = ".txt";
+            public bool isRawsFolderRecursive = true;
+            public string rawsExtension = ".txt";
 			public bool isDirectory = true;
 			public bool addEndGuards = false;
 			public string inputFile = null;
@@ -133,9 +134,10 @@ namespace Nintenlord.Event_Assembler.Core
 					Program.MakeDoc (
 						Program.RunConfig.outputFile,
 						Program.RunConfig.rawsFolder,
-						Program.RunConfig.rawsExtension,
+                        Program.RunConfig.isRawsFolderRecursive,
+                        Program.RunConfig.rawsExtension,
 						Program.RunConfig.isDirectory,
-						Program.RunConfig.docHeader,
+                        Program.RunConfig.docHeader,
 						Program.RunConfig.docFooter
 					);
 
@@ -197,11 +199,12 @@ namespace Nintenlord.Event_Assembler.Core
 		}
 
 		// EA GUI Entry point
-		public static void LoadCodes (string rawsFolder, string extension, bool isDirectory, bool collectDocCodes)
+		public static void LoadCodes (string rawsFolder, string extension, bool isDirectory, bool isDirectoryRecursive, bool collectDocCodes)
 		{
 			Program.RunConfig.rawsFolder = rawsFolder;
 			Program.RunConfig.rawsExtension = extension;
 			Program.RunConfig.isDirectory = isDirectory;
+			Program.RunConfig.isRawsFolderRecursive = isDirectoryRecursive;
 
 			LoadCodes (collectDocCodes);
 		}
@@ -980,7 +983,7 @@ namespace Nintenlord.Event_Assembler.Core
 			IPointerMaker pointerMaker = (IPointerMaker)new GBAPointerMaker ();
 
 			if (Program.RunConfig.isDirectory)
-				languageProcessor.ProcessCode (Program.RunConfig.rawsFolder, Program.RunConfig.rawsExtension);
+				languageProcessor.ProcessCode (Program.RunConfig.rawsFolder, Program.RunConfig.isRawsFolderRecursive, Program.RunConfig.rawsExtension);
 			else
 				languageProcessor.ProcessCode (Program.RunConfig.rawsFolder);
 
@@ -1021,12 +1024,12 @@ namespace Nintenlord.Event_Assembler.Core
 			}
 		}
 
-		public static void MakeDoc (string output, string rawsFolder, string extension, bool isDirectory, string header, string footer)
+		public static void MakeDoc (string output, string rawsFolder, bool isRawsFolderRecursive, string extension, bool isDirectory, string header, string footer)
 		{
 			LanguageProcessor languageProcessor = new LanguageProcessor (true, (IComparer<ICodeTemplate>)new TemplateComparer (), Program.stringComparer);
 
 			if (isDirectory)
-				languageProcessor.ProcessCode (rawsFolder, extension);
+				languageProcessor.ProcessCode (rawsFolder, isRawsFolderRecursive, extension);
 			else
 				languageProcessor.ProcessCode (rawsFolder);
 

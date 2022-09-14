@@ -50,7 +50,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
 			this.languages = new Dictionary<string, ICodeTemplateStorer> ();
 		}
 
-		public void ProcessCode (string folder, string extension)
+		public void ProcessCode (string folder, bool recursive, string extension)
 		{
 			if (!Directory.Exists (folder))
 				throw new DirectoryNotFoundException ("Folder " + folder + " not found.");
@@ -59,7 +59,7 @@ namespace Nintenlord.Event_Assembler.Core.Code
 
 			folder = Path.GetFullPath (folder);
 
-			FileInfo[] files = directoryInfo.GetFiles ("*" + extension, SearchOption.AllDirectories);
+			FileInfo[] files = directoryInfo.GetFiles ("*" + extension, recursive ? SearchOption.AllDirectories: SearchOption.TopDirectoryOnly);
 
 			this.elements = (IDictionary<string, List<LanguageProcessor.LanguageElement>>)new Dictionary<string, List<LanguageProcessor.LanguageElement>> ();
 
