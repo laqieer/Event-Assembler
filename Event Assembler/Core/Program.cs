@@ -199,6 +199,17 @@ namespace Nintenlord.Event_Assembler.Core
 		}
 
 		// EA GUI Entry point
+		public static void Compile (string inputFile, string outputFile, string languageName, bool ignoreOrg, ILog log)
+		{
+			Program.RunConfig.inputFile = inputFile;
+			Program.RunConfig.outputFile = outputFile;
+			Program.RunConfig.language = languageName;
+			Program.RunConfig.org = !ignoreOrg;
+
+			Compile (log);
+		}
+
+		// EA GUI Entry point
 		public static void LoadCodes (string rawsFolder, string extension, bool isDirectory, bool isDirectoryRecursive, bool collectDocCodes)
 		{
 			Program.RunConfig.rawsFolder = rawsFolder;
