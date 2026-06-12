@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*", "V*", "Release*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Build Core
+        shell: pwsh
+        run: |
+          dotnet publish "Event Assembler/Core/Core.csproj" -c Release -o artifacts/package/Core
+          Copy-Item README.md,README2.txt,README3.md artifacts/package/
+          Copy-Item "Event Assembler/Event Assembler/Language Raws" "artifacts/package/Language Raws" -Recurse -Force
+          Copy-Item "Event Assembler/Event Assembler/EA Standard Library" "artifacts/package/EA Standard Library" -Recurse -Force
+
+      - name: Package artifact
+        shell: pwsh
+        run: |
+          $zip = "artifacts/Event-Assembler-${{ runner.os }}.zip"
+          Compress-Archive -Path artifacts/package/* -DestinationPath $zip -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Event-Assembler-${{ runner.os }}
+          path: artifacts/Event-Assembler-${{ runner.os }}.zip
+          if-no-files-found: error
+
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip

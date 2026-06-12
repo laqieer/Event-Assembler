@@ -1,5 +1,10 @@
 Event-Assembler
 ===============
+
+[![CI](https://github.com/laqieer/Event-Assembler/actions/workflows/ci.yml/badge.svg)](https://github.com/laqieer/Event-Assembler/actions/workflows/ci.yml)
+[Latest build artifacts](https://github.com/laqieer/Event-Assembler/actions/workflows/ci.yml) ·
+[Latest release](https://github.com/laqieer/Event-Assembler/releases/latest)
+
 Nintenlord's event code Assembler for Fire Emblem
 games on GBA.
 
