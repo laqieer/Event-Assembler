@@ -8,6 +8,8 @@ Event-Assembler
 Nintenlord's event code Assembler for Fire Emblem
 games on GBA.
 
+The cross-platform Core release requires the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+
 -----------
 How to use:
 -----------

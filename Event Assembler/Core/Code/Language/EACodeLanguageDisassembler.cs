@@ -55,7 +55,7 @@ namespace Nintenlord.Event_Assembler.Core.Code.Language
 
 			labelMap [offset] = "PointerList";
 
-			foreach (Tuple<int, Tuple<string, List<Priority>>> tuple in pointerList.SelectMany (x => x).Index ()) {
+			foreach (Tuple<int, Tuple<string, List<Priority>>> tuple in Nintenlord.Collections.CollectionExtensions.Index (pointerList.SelectMany (x => x))) {
 				int pointerOffset = offset + 4 * tuple.Item1;
 				int pointer = BitConverter.ToInt32 (rom, pointerOffset);
 

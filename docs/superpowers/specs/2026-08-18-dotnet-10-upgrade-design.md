@@ -13,6 +13,8 @@ release with the existing Linux, Windows, and macOS artifacts.
 - GitHub Actions installs the .NET 10 SDK and continues to build all three
   operating-system artifacts.
 - A clean local restore, Release build, and publish complete without errors.
+- The existing indexed pointer-list enumeration compiles against .NET 10
+  without changing its `Tuple<int,T>` behavior.
 - The published dependency metadata identifies `.NETCoreApp,Version=v10.0`.
 - The upgrade commit is present on `origin/master`.
 - release `v2026.08.18` exists at that commit and contains the Linux, macOS,
@@ -48,9 +50,11 @@ dependent publishing behavior unchanged. Change `actions/setup-dotnet` from
 `6.0.x` to `10.0.x`. Add a concise README requirement so consumers know the
 new runtime baseline.
 
-No source-code behavior changes or compatibility fallbacks are planned. Build
-or packaging failures remain visible through normal `dotnet` and GitHub
-Actions failures.
+.NET 10 adds BCL `Index` and `CollectionExtensions` APIs that conflict with
+the existing `Nintenlord.Collections.CollectionExtensions.Index` helper.
+Fully qualify that existing helper at its sole call site so the current
+`Tuple<int,T>` result and caller behavior remain unchanged. Build or packaging
+failures remain visible through normal `dotnet` and GitHub Actions failures.
 
 ## Validation and Release Loop
 

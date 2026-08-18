@@ -4,7 +4,7 @@
 
 **Goal:** Upgrade the supported Event Assembler Core release to .NET 10 and publish verified cross-platform release `v2026.08.18`.
 
-**Architecture:** Retarget the two SDK-style projects in the Core dependency graph and update the existing GitHub Actions SDK selection. Preserve source behavior, package references, framework-dependent publishing, and all legacy .NET Framework projects.
+**Architecture:** Retarget the two SDK-style projects in the Core dependency graph and update the existing GitHub Actions SDK selection. Preserve runtime behavior by explicitly binding the repository's existing indexed-enumeration helper where new .NET 10 BCL APIs create name collisions.
 
 **Tech Stack:** .NET SDK 10, MSBuild, PowerShell, Git, GitHub Actions, GitHub CLI
 
@@ -13,7 +13,9 @@
 - `Nintenlord/Nintenlord.csproj` and `Event Assembler/Core/Core.csproj` must target `net10.0`.
 - The legacy .NET Framework 4.0 GUI and conversion utility projects must remain unchanged.
 - Publishing must remain framework-dependent and cross-platform.
-- Existing package references and source behavior must remain unchanged.
+- Existing package references and runtime behavior must remain unchanged.
+- The indexed pointer-list enumeration must continue returning the repository's
+  existing `Tuple<int,T>` shape.
 - GitHub Actions must produce Linux, macOS, and Windows ZIP assets.
 - The release tag must be `v2026.08.18`.
 - Every commit must include `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`.
@@ -25,12 +27,15 @@
 **Files:**
 - Modify: `Nintenlord/Nintenlord.csproj:3`
 - Modify: `Event Assembler/Core/Core.csproj:3`
+- Modify: `Event Assembler/Core/Code/Language/EACodeLanguageDisassembler.cs:58`
 - Modify: `.github/workflows/ci.yml:26`
 - Modify: `README.md:10`
 
 **Interfaces:**
 - Consumes: The existing `Core.csproj` project reference to `Nintenlord.csproj`.
-- Produces: A Core dependency graph targeting `net10.0` and CI configured with `dotnet-version: 10.0.x`.
+- Produces: A Core dependency graph targeting `net10.0`, an unambiguous call
+  to the existing indexed-enumeration helper, and CI configured with
+  `dotnet-version: 10.0.x`.
 
 - [ ] **Step 1: Run the target-version assertion before editing**
 
@@ -92,7 +97,31 @@ with:
           dotnet-version: 10.0.x
 ```
 
-- [ ] **Step 5: Document the runtime requirement**
+- [ ] **Step 5: Verify the .NET 10 compatibility failure**
+
+```powershell
+dotnet build "Event Assembler\Core\Core.csproj" -c Release --no-restore --nologo
+```
+
+Expected: FAIL with `CS0121` because .NET 10 adds
+`System.Linq.Enumerable.Index`, which conflicts with the repository's
+`CollectionExtensions.Index`.
+
+- [ ] **Step 6: Bind the existing indexed-enumeration helper**
+
+Replace:
+
+```csharp
+foreach (Tuple<int, Tuple<string, List<Priority>>> tuple in pointerList.SelectMany (x => x).Index ()) {
+```
+
+with:
+
+```csharp
+foreach (Tuple<int, Tuple<string, List<Priority>>> tuple in Nintenlord.Collections.CollectionExtensions.Index (pointerList.SelectMany (x => x))) {
+```
+
+- [ ] **Step 7: Document the runtime requirement**
 
 Insert after the introductory sentence in `README.md`:
 
@@ -100,20 +129,21 @@ Insert after the introductory sentence in `README.md`:
 The cross-platform Core release requires the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
 ```
 
-- [ ] **Step 6: Re-run the target-version assertion**
+- [ ] **Step 8: Re-run the target-version assertion**
 
 Run the PowerShell assertion from Step 1.
 
 Expected: PASS with exit code 0 and no output.
 
-- [ ] **Step 7: Check the scoped diff**
+- [ ] **Step 9: Check the scoped diff**
 
 ```powershell
-git --no-pager diff --check
-git --no-pager diff -- "Nintenlord\Nintenlord.csproj" "Event Assembler\Core\Core.csproj" ".github\workflows\ci.yml" README.md
+git -c core.whitespace=cr-at-eol --no-pager diff --check
+git --no-pager diff -- "Nintenlord\Nintenlord.csproj" "Event Assembler\Core\Core.csproj" "Event Assembler\Core\Code\Language\EACodeLanguageDisassembler.cs" ".github\workflows\ci.yml" README.md
 ```
 
-Expected: No whitespace errors; only the two target frameworks, CI SDK version, and README requirement change.
+Expected: No whitespace errors; only the two target frameworks, explicit
+existing-helper call, CI SDK version, and README requirement change.
 
 ### Task 2: Validate .NET 10 Build and Package Metadata
 
@@ -164,7 +194,7 @@ Expected: Exit code 0 and `$publishDir\Core.dll` exists.
 
 ```powershell
 $deps = Get-Content (Join-Path $publishDir "Core.deps.json") -Raw | ConvertFrom-Json
-if ($deps.runtimeTarget.name -notlike ".NETCoreApp,Version=v10.0/*") {
+if ($deps.runtimeTarget.name -ne ".NETCoreApp,Version=v10.0") {
   throw "Unexpected runtime target: $($deps.runtimeTarget.name)"
 }
 ```
@@ -177,43 +207,49 @@ Expected: PASS with exit code 0.
 git status --short
 ```
 
-Expected: Only the four intended Task 1 files and this plan are modified or untracked.
+Expected: Only the seven intended upgrade and documentation files are
+modified or untracked.
 
 ### Task 3: Commit and Push the Upgrade
 
 **Files:**
 - Commit: `Nintenlord/Nintenlord.csproj`
 - Commit: `Event Assembler/Core/Core.csproj`
+- Commit: `Event Assembler/Core/Code/Language/EACodeLanguageDisassembler.cs`
 - Commit: `.github/workflows/ci.yml`
 - Commit: `README.md`
 - Commit: `docs/superpowers/plans/2026-08-18-dotnet-10-upgrade.md`
+- Commit: `docs/superpowers/specs/2026-08-18-dotnet-10-upgrade-design.md`
 
 **Interfaces:**
 - Consumes: The locally validated Task 1 changes.
-- Produces: An upgrade commit reachable from `origin/master`.
+- Produces: An upgrade commit on `dotnet-10-upgrade`, fast-forwarded to
+  `master`, and reachable from `origin/master`.
 
 - [ ] **Step 1: Stage the scoped files**
 
 ```powershell
-git add -- "Nintenlord\Nintenlord.csproj" "Event Assembler\Core\Core.csproj" ".github\workflows\ci.yml" README.md "docs\superpowers\plans\2026-08-18-dotnet-10-upgrade.md"
-git --no-pager diff --cached --check
+git add -- "Nintenlord\Nintenlord.csproj" "Event Assembler\Core\Core.csproj" "Event Assembler\Core\Code\Language\EACodeLanguageDisassembler.cs" ".github\workflows\ci.yml" README.md "docs\superpowers\plans\2026-08-18-dotnet-10-upgrade.md" "docs\superpowers\specs\2026-08-18-dotnet-10-upgrade-design.md"
+git -c core.whitespace=cr-at-eol --no-pager diff --cached --check
 git --no-pager diff --cached --stat
 ```
 
-Expected: Five staged files and no whitespace errors.
+Expected: Seven staged files and no whitespace errors.
 
 - [ ] **Step 2: Commit the upgrade**
 
 ```powershell
-git commit -m "Upgrade Event Assembler Core to .NET 10" -m "Retarget the supported Core project graph to net10.0, build release artifacts with the .NET 10 SDK, and document the runtime requirement." -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git commit -m "Upgrade Event Assembler Core to .NET 10" -m "Retarget the supported Core project graph to net10.0, disambiguate its indexed enumeration from new .NET 10 BCL APIs, build release artifacts with the .NET 10 SDK, and document the runtime requirement." -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ```
 
-Expected: A new commit on `master`.
+Expected: A new commit on `dotnet-10-upgrade`.
 
-- [ ] **Step 3: Push `master`**
+- [ ] **Step 3: Fast-forward and push `master`**
 
 ```powershell
-git push origin master
+$mainRepo = "C:\Projects\laqieer\FEBuilderGBA\tools\Event-Assembler"
+git -C $mainRepo merge --ff-only dotnet-10-upgrade
+git -C $mainRepo push origin master
 ```
 
 Expected: `origin/master` advances to the upgrade commit.
@@ -222,7 +258,12 @@ Expected: `origin/master` advances to the upgrade commit.
 
 ```powershell
 $sha = git rev-parse HEAD
-$remoteSha = git ls-remote origin refs/heads/master | ForEach-Object { ($_ -split "\s+")[0] }
+$mainRepo = "C:\Projects\laqieer\FEBuilderGBA\tools\Event-Assembler"
+$masterSha = git -C $mainRepo rev-parse master
+$remoteSha = git -C $mainRepo ls-remote origin refs/heads/master | ForEach-Object { ($_ -split "\s+")[0] }
+if ($masterSha -ne $sha) {
+  throw "master is $masterSha, expected $sha"
+}
 if ($remoteSha -ne $sha) {
   throw "origin/master is $remoteSha, expected $sha"
 }
@@ -326,7 +367,10 @@ Expected: PASS and print the published release URL.
 - [ ] **Step 4: Confirm the final repository state**
 
 ```powershell
+$mainRepo = "C:\Projects\laqieer\FEBuilderGBA\tools\Event-Assembler"
 git status --short --branch
+git -C $mainRepo status --short --branch
 ```
 
-Expected: `master` is aligned with `origin/master` and the worktree is clean.
+Expected: The worktree branch is clean and `master` is aligned with
+`origin/master`.
