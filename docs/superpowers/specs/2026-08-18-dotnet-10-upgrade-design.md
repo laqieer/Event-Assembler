@@ -50,11 +50,12 @@ dependent publishing behavior unchanged. Change `actions/setup-dotnet` from
 `6.0.x` to `10.0.x`. Add a concise README requirement so consumers know the
 new runtime baseline.
 
-.NET 10 adds BCL `Index` and `CollectionExtensions` APIs that conflict with
-the existing `Nintenlord.Collections.CollectionExtensions.Index` helper.
-Fully qualify that existing helper at its sole call site so the current
-`Tuple<int,T>` result and caller behavior remain unchanged. Build or packaging
-failures remain visible through normal `dotnet` and GitHub Actions failures.
+.NET 9 and later add `System.Linq.Enumerable.Index`, which conflicts with the
+existing `Nintenlord.Collections.CollectionExtensions.Index` helper during
+this upgrade. Fully qualify that existing helper at its sole call site so the
+current `Tuple<int,T>` result and caller behavior remain unchanged. Build or
+packaging failures remain visible through normal `dotnet` and GitHub Actions
+failures.
 
 ## Validation and Release Loop
 
@@ -65,6 +66,8 @@ failures remain visible through normal `dotnet` and GitHub Actions failures.
 3. Review the diff, commit it with the required co-author trailer, and push
    `master`.
 4. Wait for the `master` CI workflow to succeed.
-5. Create GitHub release `v2026.08.18` at the pushed commit.
-6. Wait for the tag workflow to succeed, then verify the release is published
-   and has exactly the expected three platform ZIP assets.
+5. Create and push annotated tag `v2026.08.18` at the validated commit.
+6. Wait for the tag workflow to build the artifacts and create the release,
+   then verify it is published and has exactly the expected three platform ZIP
+   assets. Download every ZIP and confirm its packaged Core dependency metadata
+   targets `.NETCoreApp,Version=v10.0`.

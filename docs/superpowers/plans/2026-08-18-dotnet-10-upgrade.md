@@ -100,12 +100,12 @@ with:
 - [ ] **Step 5: Verify the .NET 10 compatibility failure**
 
 ```powershell
-dotnet build "Event Assembler\Core\Core.csproj" -c Release --no-restore --nologo
+dotnet build "Event Assembler\Core\Core.csproj" -c Release --nologo
 ```
 
-Expected: FAIL with `CS0121` because .NET 10 adds
+Expected: FAIL with `CS0121` because .NET 9 and later include
 `System.Linq.Enumerable.Index`, which conflicts with the repository's
-`CollectionExtensions.Index`.
+`CollectionExtensions.Index` when the project is upgraded to .NET 10.
 
 - [ ] **Step 6: Bind the existing indexed-enumeration helper**
 
@@ -302,15 +302,16 @@ Expected: The Linux, Windows, and macOS build matrix succeeds.
 - Consumes: The successful pushed commit and `master` CI run from Task 3.
 - Produces: A published GitHub release at the exact upgrade commit with three verified assets.
 
-- [ ] **Step 1: Create the release at the upgrade commit**
+- [ ] **Step 1: Create and push the annotated release tag**
 
 ```powershell
 $sha = git rev-parse HEAD
-$notes = "Upgrade the supported Event Assembler Core release from .NET 6 to .NET 10.`n`nRequires the .NET 10 runtime."
-gh release create v2026.08.18 --target $sha --title "v2026.08.18" --notes $notes
+git tag -a v2026.08.18 $sha -m "v2026.08.18"
+git push origin refs/tags/v2026.08.18
 ```
 
-Expected: GitHub creates the tag and published release, triggering the tag workflow.
+Expected: GitHub receives the tag and starts the tag workflow. No release is
+published until the build and release jobs succeed.
 
 - [ ] **Step 2: Wait for the tag workflow**
 
@@ -336,7 +337,7 @@ Expected: The build matrix and release job succeed.
 
 ```powershell
 $sha = git rev-parse HEAD
-$tagSha = git ls-remote origin refs/tags/v2026.08.18 | ForEach-Object { ($_ -split "\s+")[0] }
+$tagSha = git ls-remote origin "refs/tags/v2026.08.18^{}" | ForEach-Object { ($_ -split "\s+")[0] }
 if ($tagSha -ne $sha) {
   throw "Release tag is $tagSha, expected $sha"
 }
@@ -364,7 +365,47 @@ $release.url
 
 Expected: PASS and print the published release URL.
 
-- [ ] **Step 4: Confirm the final repository state**
+- [ ] **Step 4: Inspect every released ZIP**
+
+```powershell
+$downloadDir = Join-Path $env:TEMP "event-assembler-v2026.08.18"
+if (Test-Path -LiteralPath $downloadDir) {
+  Remove-Item -LiteralPath $downloadDir -Recurse -Force
+}
+New-Item -ItemType Directory -Path $downloadDir | Out-Null
+
+gh release download v2026.08.18 --pattern "Event-Assembler-*.zip" --dir $downloadDir
+$zips = @(Get-ChildItem -LiteralPath $downloadDir -Filter "*.zip" -File)
+if ($zips.Count -ne 3) {
+  throw "Downloaded $($zips.Count) release ZIPs, expected 3"
+}
+
+foreach ($zip in $zips) {
+  $extractDir = Join-Path $downloadDir $zip.BaseName
+  Expand-Archive -LiteralPath $zip.FullName -DestinationPath $extractDir -Force
+
+  foreach ($relativePath in @(
+    "Core\Core.dll"
+    "Core\Core.deps.json"
+    "README.md"
+    "Language Raws"
+    "EA Standard Library"
+  )) {
+    if (-not (Test-Path -LiteralPath (Join-Path $extractDir $relativePath))) {
+      throw "$($zip.Name) is missing $relativePath"
+    }
+  }
+
+  $deps = Get-Content (Join-Path $extractDir "Core\Core.deps.json") -Raw | ConvertFrom-Json
+  if ($deps.runtimeTarget.name -ne ".NETCoreApp,Version=v10.0") {
+    throw "$($zip.Name) targets $($deps.runtimeTarget.name)"
+  }
+}
+```
+
+Expected: PASS for all three platform archives.
+
+- [ ] **Step 5: Confirm the final repository state**
 
 ```powershell
 $mainRepo = "C:\Projects\laqieer\FEBuilderGBA\tools\Event-Assembler"
